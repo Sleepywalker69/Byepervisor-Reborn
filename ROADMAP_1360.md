@@ -686,6 +686,29 @@ show whether the last wake reached that point. A direct marker send after
 a separately verified manual wake is still needed to distinguish the
 configured coordinator path from marker execution.
 
+### Manual wake and external marker control (13 October 2026)
+
+One fresh manual-mode Y2JB/Byepervisor run on PPSA01651 reached a saved
+`POSTWAKE_MANUAL` event. Its sole title arm record matched an independent V3
+status read: AP complete, hook state zero, matching arm/completion IDs and
+restored gate/IST. The status `kern.boottime` was about nine seconds later
+than the stage log's session wall-clock timestamp; previous 13.60 Rest Mode
+cycles had also moved `kern.boottime`. Attempt identity therefore used the
+exact arm ID, title, kernel base/root and latest session event, while the
+clock difference was retained as evidence.
+
+With the user watching a responsive console, the same pinned marker ELF was
+sent once through the existing elfldr **after** that manual receipt passed.
+It wrote a 224-byte per-attempt marker record whose title, boot, arm and
+completion IDs, base/root, AP stage, hook state, gate and IST matched the
+independent status. A second status read was byte-identical. The private
+control report recorded `execution_verified` and passed; the user then
+confirmed the home screen was still responsive. This establishes
+that the marker ELF can execute via an external send after manual wake.
+It does not establish that the configured Y2JB post-wake coordinator survives
+Rest Mode or sends an ELF, and it does not identify the earlier power-off
+cause. No Payload Manager or kstuff test was part of this control.
+
 Offline work in parallel mapped all 78 entries of the published 13.60
 kstuff-lite kernel offset table to the saved capture or its one structure
 field, and captured the retail on-disk ShellCore ELF read-only. All 34
