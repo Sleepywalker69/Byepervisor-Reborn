@@ -90,3 +90,27 @@ reviewed, or an explicit narrower feature
 goal, a module-ready receipt from the exact launched build, and a functional
 test of that feature on a fresh manual-mode wake. Keep the current no-launch
 post-wake default while selecting and testing one downstream module.
+
+## First opt-in candidate run and fPKG install boundary
+
+On an existing manual-mode 13.60 wake, the pre-launch Byepervisor receipt
+passed with a matching attempt ID, AP-complete stage, cleared hook and
+restored gate/IST. The observed opt-in kstuff-lite loader then started;
+its separate debug reader attached to the resident module. PPR counters
+were zero before any package operation. The same Byepervisor gate/IST
+equality check failed after kstuff loaded. A bounded readback placed the
+live gate at kstuff's 13.60 `add_rsp_iret` offset, with a nonzero IST6
+consistent with its debugger setup. This is evidence of downstream
+interposition on the shared gate/TSS slot; it does not prove the later
+cleanup lifecycle is safe.
+
+A private, structurally accepted homebrew test package was transferred
+with a complete matching readback. One installer probe returned no
+stdout before a host timeout. A separate read-only preflight reached
+`main` and confirmed the package size; a read-only status probe linked
+to `libSceAppInstUtil.sprx` emitted nothing. An unlinked probe printed
+before `dlopen` of that library and did not print afterward within 30
+seconds. The library load path is therefore the current observed stop,
+though the reason is not established. Package installation and PPR
+activity remain unproved. No automatic post-wake payload launch or
+installer retry was added.
