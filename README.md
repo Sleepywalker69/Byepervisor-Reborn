@@ -18,9 +18,19 @@ diagnostic candidate. It keeps the existing hook, AP code, and automatic
 standby request but pauses file logging immediately before hook installation.
 It records one pre-arm checkpoint and resumes file logging only after verified
 hook cleanup. This removes the added `open`/`write`/`fsync`/`close` calls from
-the armed window; it does not prove that file logging caused the freeze or
-that this candidate will run safely. See
-[TEST_PLAN_1360_NOHOTLOG.md](TEST_PLAN_1360_NOHOTLOG.md) for its one-run boundary.
+the armed window. **Its one live run also froze before Rest Mode. Do not
+relaunch it.** This result shows that removing armed file logging was not
+enough to prevent the freeze. The hook/notification stopping point remains
+unidentified. See [TEST_PLAN_1360_NOHOTLOG.md](TEST_PLAN_1360_NOHOTLOG.md)
+for the attempted run record.
+
+The separate `byepervisor_reborn_upstream_ea04f71_1360.elf` is an exact build
+of unmodified upstream source. **Its one live launch froze and the PS5 powered
+off before Rest Mode, after its `Enter sleep and resume!` notification appeared.
+Do not relaunch it.** Its provenance and observed result are in
+[UPSTREAM_BASELINE_1360.md](UPSTREAM_BASELINE_1360.md). It includes upstream's
+kernel-text mapping changes and post-resume kernel-text demonstration; it is
+not the controlled-stage fork described below.
 
 **Note: This repo should be considered a base exploit for work to be built on top of. It is not useful to regular users in its current release state, this is intended for developers.**
 
@@ -94,8 +104,9 @@ Some firmwares might require more extensive modifications if gadgets don't exist
 
 ## How to use
 1. Run kernel exploit chain and get to elfldr
-2. Do not resend the failed logged ELF or the first auto-Rest-Mode ELF. The
-   no-hot-log ELF is a separate, unverified diagnostic candidate.
-3. For a supervised one-run test of the no-hot-log candidate, follow its exact
-   hash and stop conditions in [TEST_PLAN_1360_NOHOTLOG.md](TEST_PLAN_1360_NOHOTLOG.md).
-   The earlier [TEST_PLAN_1360.md](TEST_PLAN_1360.md) is historical.
+2. Do not resend any of the three edited 13.60 `dist/` ELFs. The logged and
+   no-hot-log candidates froze before Rest Mode; the first auto-Rest-Mode
+   candidate was not tested and does not address that stopping point.
+3. The unmodified upstream baseline froze and the PS5 powered off after
+   displaying its pre-Rest-Mode notification. All test plans are historical records, not
+   instructions to rerun their ELFs.

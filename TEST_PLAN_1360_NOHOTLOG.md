@@ -1,5 +1,10 @@
 # 13.60 no-hot-log diagnostic candidate
 
+**Live result, 13 October 2026:** The single supervised launch reached the
+host `Hook installed; automatic Rest Mode in 3 seconds` line. The user reported
+the PS5 frozen before Rest Mode. No AP or resume result was obtained. Do not
+relaunch this exact ELF; the steps below document the attempted test.
+
 This is one supervised run of `dist/byepervisor_reborn_1360_autorest_nohotlog_unverified.elf`,
 SHA-256 `376cafd8ef3549574c339997f67b7b75e315b9b6b8d5ab6dc7a5e8f40deb5e69`.
 It is an unverified crash-isolation candidate, not a proven hypervisor bypass.
