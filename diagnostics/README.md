@@ -54,3 +54,31 @@ stream, parsed 4,096-byte page, manifest, and an independent read-only PDE
 postcheck. These establish one captured page and restored guest PDE on the
 observed boot. They do not prove that all 13.60 text pages are readable, that
 the HV stage caused this access, or that writes to text are possible.
+
+## Bounded 64 KiB region
+
+`kernel_text_region_1360.c` captures `text+0x2a0000` through `+0x2affff` on
+the same boot. It obtains `kern.boottime`, checks the AP/hook state, then walks
+all sixteen 4 KiB addresses before changing any mapping. Every address must
+resolve to the exact measured 2 MiB PDE; an absent or different leaf aborts
+before a write. It clears one PDE bit, copies the fixed 64 KiB region in 256
+byte chunks, restores and checks the PDE, then emits framed page records.
+This candidate stops on a failed leaf or read and never tries to skip an
+unverified hole. It is deliberately confined to this one PDE and boot.
+
+`parse_kernel_text_region.py` requires the complete ordered stream, matching
+boot-time records, successful clear/restore readbacks, and exact equality of
+page 8 with the independent 4 KiB capture. It reports a SHA-256 for each
+page and the region. Five synthetic parser checks pass. The saved ELF,
+host stream, raw partial image, postcheck, and manifest are in this directory.
+An independent read-only page walk after the region capture returned the
+original protected PDE.
+
+For IDA, open `captures/kernel-text-region-1360.bin` as a **raw x86-64
+binary** and set its loading address to `0xffffffffddce0000`. The file spans
+exactly `0xffffffffddce0000` through `0xffffffffddceffff`; it has no ELF
+headers, sections, relocations, symbols, or bytes outside this window. The
+console reported boot time `2026-10-13T11:15:09.471453Z`, and the host file
+was created at `2026-10-13T11:52:58Z`. These are provenance observations,
+not proof of an independent console identity. No conclusion about patch
+sites should be made from a missing portion of the kernel image.

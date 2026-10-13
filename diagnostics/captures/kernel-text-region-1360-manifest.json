@@ -1,0 +1,101 @@
+{
+  "firmware": "13.60 (0x13600007)",
+  "virtual_base": "0xffffffffddce0000",
+  "length": 65536,
+  "sha256": "488482d4aba95751f86c7b1906709ee2fffefd6bd5ad4beab3fcfa8fb9846685",
+  "pmap_root": "0x0000000021894000",
+  "pde_slot": "0xffff821321929770",
+  "console_boot_time": {
+    "seconds": 1791890109,
+    "microseconds": 471453
+  },
+  "anchor_index": 8,
+  "anchor_sha256": "8291eeb4759a048f0c556273cfb9c591ff212684c5c9b76316c2f0891ec39599",
+  "pages": [
+    {
+      "index": 0,
+      "virtual_address": "0xffffffffddce0000",
+      "sha256": "e388590cc7d30bcf3041d79407e2bdb25a6f2fbd428c8d29035d2274302b162c"
+    },
+    {
+      "index": 1,
+      "virtual_address": "0xffffffffddce1000",
+      "sha256": "20a4dce7b9f9d63aa91388049cc16a50a1b74e5098187126f067698f978e0ead"
+    },
+    {
+      "index": 2,
+      "virtual_address": "0xffffffffddce2000",
+      "sha256": "c05ea5e8e183546279f1f151464736ea20d563b3124cade67ed4c17eb7fd0afe"
+    },
+    {
+      "index": 3,
+      "virtual_address": "0xffffffffddce3000",
+      "sha256": "29debe7f23e5fb5fe87d5a2a33b308b591692f9e479b323a08b7300eec1e120a"
+    },
+    {
+      "index": 4,
+      "virtual_address": "0xffffffffddce4000",
+      "sha256": "de199e5fd978248166a71cb49961765476ce0567528337f052dabbd604d259e7"
+    },
+    {
+      "index": 5,
+      "virtual_address": "0xffffffffddce5000",
+      "sha256": "82bc89930d03295228e0dbee047b84bb93f78d6ee2ebebc796587c2088c3f19b"
+    },
+    {
+      "index": 6,
+      "virtual_address": "0xffffffffddce6000",
+      "sha256": "37836ddeef8eb63a4b5cc49ed4bc3877f5a671c36f8c5745874ae5c88f8c5165"
+    },
+    {
+      "index": 7,
+      "virtual_address": "0xffffffffddce7000",
+      "sha256": "04366382895a75392d71e4e457087833ef40f0d3b0b164fd79d9ab7133f436d8"
+    },
+    {
+      "index": 8,
+      "virtual_address": "0xffffffffddce8000",
+      "sha256": "8291eeb4759a048f0c556273cfb9c591ff212684c5c9b76316c2f0891ec39599"
+    },
+    {
+      "index": 9,
+      "virtual_address": "0xffffffffddce9000",
+      "sha256": "5cee9c12df7bdbd71f37a7c16c7c9411e4b257fe3ab2633444a4e62a4db87c62"
+    },
+    {
+      "index": 10,
+      "virtual_address": "0xffffffffddcea000",
+      "sha256": "4621d78a7083662283152e71b917451d1a5f4f6229c91d61bd6ee67748555389"
+    },
+    {
+      "index": 11,
+      "virtual_address": "0xffffffffddceb000",
+      "sha256": "bb3217d79b07d2d996e6341f8c977955ab70a4ed4a849d557fd6207e71b13527"
+    },
+    {
+      "index": 12,
+      "virtual_address": "0xffffffffddcec000",
+      "sha256": "56063b7ef843f0873899c7065a80ffac9a7c710f22ef18ef76ece60a46b609ab"
+    },
+    {
+      "index": 13,
+      "virtual_address": "0xffffffffddced000",
+      "sha256": "a95e171fa4039c5f7f9d147a74ea9bf2f0c82b091c93fd6a1b59134188b77376"
+    },
+    {
+      "index": 14,
+      "virtual_address": "0xffffffffddcee000",
+      "sha256": "2ee21cd609ea64f9d592986c26b5e8232571f119b20906afeef4b6cd9bce4ae9"
+    },
+    {
+      "index": 15,
+      "virtual_address": "0xffffffffddcef000",
+      "sha256": "9adfe47037578c30e490c5e4991a5b8b79313c02a54239f4e2ac69a953e72c80"
+    }
+  ],
+  "source_log": "diagnostics/captures/kernel-text-region-1360-host.log",
+  "source_log_sha256": "d65c368a8962ad7a9445959da8a6327c79d062d1f3dcaad52ab4d4cc6ab0f520",
+  "capture_elf_sha256": "75470bfd118d53bb0d51b1452d6c75e2def91d285bf484f06844254b1913051b",
+  "postcheck_log_sha256": "06ba9793dbc283a428b803896cbfea7849d8eed0404ddc922a7060a1eecd4b0e",
+  "host_capture_created_utc": "2026-10-13T11:52:58Z"
+}

@@ -34,11 +34,16 @@ working research foothold, not a complete 13.60 jailbreak.
    `+0xd60`, and the ELF's restore report. A separate read-only page walk
    reproduced the original PDE. The source, ELF, capture, and manifest are in
    `diagnostics/`. This is one page from one console boot, not a kernel ELF.
-2. **Bounded region capture.** Generalize the page walker to validate each
-   mapped leaf before reading, skip or stop at holes, and retain per-page
-   hashes and firmware/boot provenance. Grow only after the first capture is
-   checked. Produce an analyzable kernel image or a clearly documented partial
-   image for IDA; do not infer symbols from an opaque PUP component.
+2. **Bounded region capture — achieved for one 64 KiB window.** The page
+   walker validated all sixteen addresses before changing their common
+   measured leaf; it stops at a missing or unexpected mapping or a failed
+   read. The capture has per-page hashes, firmware, console boot time, pmap
+   root, host time, exact overlap with milestone 1, and an independent PDE
+   postcheck. The documented raw x86-64 partial image begins at
+   `0xffffffffddce0000`, is 65,536 bytes, and has SHA-256
+   `488482d4aba95751f86c7b1906709ee2fffefd6bd5ad4beab3fcfa8fb9846685`.
+   It is confined to this one boot-specific leaf; no other text range has
+   been certified.
 3. **Separate capability checks.** Verify read-only access and restoration
    across the relevant kernel-text regions, then make any write experiment
    reversible with exact preimage and post-write checks. Check whether the
@@ -51,5 +56,6 @@ working research foothold, not a complete 13.60 jailbreak.
    autoloader can observe after wake. Only after that should Y2JB schedule
    later payloads. Linux requires its own much larger hardware and boot path.
 
-The immediate goal is milestone 1. It provides a real 13.60 code sample and a
-repeatable transport/checking method while retaining rollback evidence.
+The immediate goal is milestone 3: distinguish read access, restoration, and
+any later write capability, and test the AP stage's causal contribution before
+calling this a general 13.60 text-access primitive.
