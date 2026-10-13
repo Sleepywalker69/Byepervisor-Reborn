@@ -49,6 +49,38 @@ research, but their presence does not validate the verifyImage and key
 cleanup ABI on a retail 13.60 boot. The source comments call out the need
 for static validation of the paired call sites against a matching image.
 
+## Static checker and IDA cross-check on the private 13.60 capture
+
+The source's unchanged `tools/validate_ppr_offsets.py` was run against the
+private synthetic ELF assembled from the measured 13.60 text and mapped-data
+ranges. A private wrapper supplies version key `13_60` because the synthetic
+ELF filename is descriptive rather than `13.60.elf`; it does not change the
+validator's checks. The result was `checks=PASS count=0`. The 268-byte
+private result file `downstream-kstuff-audit/ppr-static-validate.txt` has
+SHA-256 `2202fb58c76cfcaac92576b8451bbbdad3de9bdbe3e5b01e1e915490877c7601`;
+the wrapper's SHA-256 is
+`a2778995f1c53f45ca9b83c08b7089c65c3efcb7639d152ca5d01c0c8a1531b8`.
+The synthetic ELF and wrapper stay local.
+
+IDA separately identifies `ppfs_get_xts_index` at
+`0xffffffffd4703920` and `ppfs_get_cmac_index` at
+`0xffffffffd4703a80` by their embedded diagnostics and code. The common
+`setup_a53io_pkg_keys` caller at `0xffffffffd3ee6370` calls them at
+`0xffffffffd3ee6404` (`e8 17 d5 81 00`) and
+`0xffffffffd3ee644f` (`e8 2c d6 81 00`) after its initial `-1`
+key-index check. In cleanup, the 13.60 profile's `+0x12b` site is
+`0xffffffffd3edb59b` (`e8 d0 85 82 00`) and calls a function labeled
+`ppfs_put_cmac_index` by its diagnostic. The `+0x15b` site is
+`0xffffffffd3edb5cb` (`e8 40 84 82 00`) and calls the analogous
+`ppfs_put_xts_index` function. This extends the validator's check, which
+only requires an E8 call at those two cleanup sites, with exact target
+semantics from the captured code.
+
+The pass is a static match for the expected instruction relationships on
+one non-atomic capture. It does not validate live register contents,
+secure-module responses, lifecycle handling, or the safety of enabling the
+source's dormant 13.60 profile. No PPR interception or fPKG test ran.
+
 ## Gate for downstream use
 
 Do not count sending this ELF, its process startup, or the public

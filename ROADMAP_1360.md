@@ -446,3 +446,12 @@ above 11.60 before the profile switch. The source explicitly leaves those
 newer profiles available for later work but does not arm plaintext PPR.
 Its 13.60 verifyImage/key-cleanup ABI still needs matching-image review and
 live functional proof. This is recorded in `DOWNSTREAM_AUDIT_1360.md`.
+
+The first matching-image static review then passed the public
+`validate_ppr_offsets.py` checks against the private 13.60 synthetic ELF
+(`checks=PASS count=0`). IDA independently confirmed that the two
+get-index return sites call the expected XTS/CMAC functions and that the
+profile's cleanup deltas land on calls to `ppfs_put_cmac_index` and
+`ppfs_put_xts_index`. This narrows the ABI uncertainty but does not remove
+the source's `FWVER > 0x1160` gate or establish live PPR/fPKG behavior.
+The private test receipt and exact call bytes are in `DOWNSTREAM_AUDIT_1360.md`.
