@@ -57,3 +57,33 @@ and `kern.boottime` from userland before the launch. Its SDK build passed
 `-Wall -Wextra -Werror`; 110,944 bytes, SHA-256
 `cd902582695ee28ec28f2e565cbbf5401596b6489756e17cbc2926656cdd4d2d`.
 No console run used this ELF yet.
+
+## First live attempt and V3 revision
+
+The first controlled V2 attempt reached arm ID `6ace30b47751d056` before
+automatic Rest Mode. A separate post-wake read reported AP-complete, zero hook,
+matching completion ID, and restored gate/IST. The strict boot-time comparison
+failed: `kern.boottime` changed from `1791897694.667760` to
+`1791897726.214153`. No later payload launched. The original host socket reset
+during Rest Mode; the separate post-wake status socket worked. This shows that
+`kern.boottime` is unsuitable as a fixed Rest Mode identity on this console.
+The host runner now records a socket error without losing its arm receipt.
+
+V3 keeps `kern.boottime` for diagnostics and compares the pre-Rest arm ID,
+kernel text base, and kernel pmap root with an independent post-wake read.
+The arm line is `BPR_ARM_V2`; the reader is `attempt_status_v3_1360.elf` and
+emits `BPR_STATUS_V3`. The fresh-boot zero checks and AP/cleanup checks remain.
+The kernel-instance values are intended to survive S3; they still require a
+new live comparison before the chain can pass. The revised hook ELF is 182,784
+bytes, SHA-256 `4e303c1a5d409013637bded728602103ab39f4948d3f5888d7e9a5d98c0ab810`;
+the V3 status ELF is 111,024 bytes, SHA-256
+`3b17d7e24c44b2341e3a65b133f74f052d95540ba453becd58378aaa2f35e4a5`.
+The exact V3 hook ELF is also retained locally as
+`diagnostics/byepervisor_reborn_attempt_receipt_v3_1360.elf`; the V2 live ELF
+remains as `diagnostics/byepervisor_reborn_attempt_receipt_1360.elf` with its
+original hash. Neither versioned binary is staged for Git.
+The 10 C state cases, four hook-contract cases, 23 V2 parser cases, and 25 V3
+parser cases passed offline. Both new ELFs remain untested on the console.
+`tests/test_run_attempt_receipt.py` also passed a local forced-socket-reset
+case: it verified that the arm ID, text base, and pmap root are saved before
+the reset and that the final reason is recorded.

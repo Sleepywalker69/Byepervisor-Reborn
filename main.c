@@ -398,7 +398,8 @@ int main(void)
   }
 
   printf("[+] Hook installed; automatic Rest Mode in 3 seconds\n");
-  printf("BPR_ARM_V1 id=%016lx\n", arm_id);
+  printf("BPR_ARM_V2 id=%016lx base=%016lx root=%016lx\n",
+         arm_id, ktext(0), kernel_pm_cr3);
   fflush(stdout);
   notifyf("Byepervisor Reborn\nArmed. Entering Rest Mode in 3 seconds.");
   sleep(3);

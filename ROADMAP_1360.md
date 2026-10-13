@@ -100,7 +100,14 @@ research question and must not be inferred from this gate.
    status reader checks stage, hook, gate, IST, ID, firmware, and boot. Ten C
    state cases and 23 Y2JB parser cases passed. On an older AP-completed boot,
    the read-only V2 reader returned `ok=0` because both attempt IDs were zero.
-   The new hook ELF has not run; no post-wake chain is enabled.
+   At that offline gate, the new hook ELF had not run; no post-wake chain is
+   enabled.
+   A subsequent controlled V2 run did arm and complete AP/cleanup, but the
+   strict `kern.boottime` equality failed because that value moved by
+   31.546393 seconds across Rest Mode. The chain stopped. V3 now compares
+   the attempt ID plus kernel text base and pmap root; it has passed offline
+   parser tests but needs a fresh live run. The original host socket reset;
+   the independent post-wake status socket worked.
 2. **Controlled attempt: pending.** Record the fresh boot and arm ID before
    Rest Mode, then require an independent post-wake `BPR_STATUS_V2` line with
    the same boot and ID, AP-complete stage, zero hook state, and restored
