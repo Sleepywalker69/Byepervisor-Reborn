@@ -159,6 +159,18 @@ The native launcher rejection alone does not identify its cause. In
 particular, package registration and the `playable` installer string do not
 prove runtime authorization.
 
+A second one-shot launch request used the same ABI for an already installed
+homebrew folder app, Prospero Explorer (`PPSA99109`). Sony returned app ID
+`0x201a`, and the next process snapshot showed a new `eboot.bin` process.
+The 110,920-byte control ELF SHA-256 was
+`48b99e24cf07eeea121729111dfc9bfb25a4961dc2d92aaf692608c1eb0d5ce6`;
+its host log SHA-256 was
+`d809941f5f307cae39d57b196f7fcfc56996080406b211f7fb435f1d57e14a8f`.
+The launcher ABI works on this boot. The control app is a folder mount,
+whereas the new test title is an `app.pkg` registered with `"fake":true`.
+That difference leaves package structure, mounting, and fake-package
+authorization as live explanations; the error alone does not select one.
+
 The public [A53 PPR patcher](https://github.com/drakmor/ppr-patch/blob/main/README.md)
 lists exact profiles only through 11.40. Its standalone fast installer is
 therefore not a ready 13.60 dependency. The current kstuff opt-in source

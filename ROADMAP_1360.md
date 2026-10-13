@@ -507,3 +507,10 @@ environment, and separately identify the 13.60 A53 PPR profile needed for
 plaintext PS5 fake-package reads. The public A53 fast installer has exact
 profiles only through 11.40. Do not load it as a 13.60 solution or claim
 fPKG support from the current kernel-only PPR opt-in.
+
+The one-shot launcher control did succeed for an existing installed
+homebrew folder app and yielded a new `eboot.bin` process. The rejected
+test title is a fake `app.pkg`, so the next comparison should use a known-good
+13.60 package of the same kind or inspect its mount/authorization path.
+Do not infer that the new package is malformed or that PPR is solely
+responsible from this two-title comparison.
