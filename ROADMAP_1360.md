@@ -695,3 +695,9 @@ patch rows from its embedded payload and confirmed the corrected two-byte
 This closes the source-to-build check for that table; loaded ShellCore bytes,
 the dynamic PPR hook, A53 behavior, mount result, key cleanup and fPKG launch
 still require separate live evidence. The full loader has not run on PS5.
+
+The saved kernel-data capture also supports the published 13.60 TSS array
+stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
+while IST3 and IST7 are zero in that capture. This is one non-atomic boot,
+so a future loader run still needs live preimage, CPU-owner and restoration
+checks before relying on its IST writes.

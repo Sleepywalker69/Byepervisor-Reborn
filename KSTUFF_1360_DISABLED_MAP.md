@@ -25,6 +25,17 @@ that every symbol has the right owner, ABI, stack layout, or runtime effect.
 In particular, an all-zero first window at `gdt_array` is only a captured
 byte observation. Runtime CPU ownership, context registers, per-CPU stride,
 cleanup and cross-boot stability are not settled by an in-range address.
+The resident source defines `GDT(i)` but has no active use of that macro;
+its zero window alone is therefore not a demonstrated blocker for the
+current loader path. `TSS(i)` is used for IST reads and writes.
+
+A further private offline audit checked the 16 table-indexed TSS records in
+the saved 13.60 mapped-data capture at the source's `0x68` stride. Every
+record had a populated canonical high-half ring-0 stack field and IST4
+field; the IST3 and IST7 fields targeted by kstuff were zero in that
+capture. This supports the table/stride interpretation for that one boot.
+It does **not** prove the current live values, CPU ownership, write safety,
+or restoration after a kstuff attempt.
 
 ## Feature gates and disabled paths
 
