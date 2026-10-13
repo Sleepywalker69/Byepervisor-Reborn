@@ -3,3 +3,6 @@ __pycache__/
 break_hv_payload/break_hv.bin
 *.o
 *~
+kernel-dump-*/
+diagnostics/captures/full-dump-*/
+*.part

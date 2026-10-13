@@ -111,6 +111,45 @@ read. All results share the reported console boot time
 without the AP stage is still needed to isolate the stage's causal effect;
 no text-write experiment has run.
 
+## Bounded 13.60 text and mapped-data dumper
+
+`kernel_map_inventory_1360.c` surveys the text/data mapping windows without
+reading their contents or writing page tables. The observed post-AP boot
+`1791893784.399222` had text base `0xffffffffd3b70000`, data base
+`0xffffffffd4830000`, and its first missing data page at
+`0xffffffffd9c00000`. The inventory is a memory-map observation, not an ELF
+section table.
+
+`kernel_dump_server_1360.c` checks firmware, AP-complete stage, zero hook
+state, saved/live gate and IST equality, and every text mapping before
+opening one TCP connection on port 9003. It bounds data at the first missing
+page, with a 128 MiB scan cap. For each requested text chunk, it clears only
+the current leaf's XOTEXT bit, copies at most 64 KiB in 256-byte reads,
+restores/readbacks the leaf, and then sends the chunk. Data reads do not
+change page tables. A mapping/read/restore error ends the stream; the host
+must not skip that chunk. The server accepts **one** client, so do not use a
+separate TCP port probe before the host client connects.
+
+Run `kernel_dump_client_1360.py --host CONSOLE_IP --output OUTSIDE_REPO_DIR
+--expected-boot BOOT_SECONDS` from the PC while the server ELF waits on port
+9003. The client checks frame lengths and CRCs, records a SHA-256 for every
+chunk, and creates two continuous files: `kernel-text.bin` and
+`kernel-data.bin`. It preserves an incomplete capture with a chunk manifest
+for same-boot resume. Use `--pilot-text-offset 0x2a0000` for one 64 KiB
+comparison before a full run; that exits the single-client server and
+requires a new server launch for the full run.
+
+The verified run produced 13,369,344 text bytes and 87,883,776 mapped-data
+bytes in separate files **outside this Git repository**. Its 64 KiB pilot
+matched the earlier independent region capture. The host verifier checked
+all 204 text and 1,341 data chunk hashes, the known overlap, and before/
+after mapping summaries. `kernel_text_leaf_verify_1360.c` independently
+read every distinct post-dump text leaf: all 3,264 text pages remained
+XOTEXT and read-only (six 2 MiB leaves plus 192 4 KiB leaves). The user
+reported the console responsive afterward. These raw memory files are not
+reconstructed ELFs; the data capture is live and non-atomic, and its endpoint
+is the first unmapped page rather than a verified ELF section boundary.
+
 For the causal test, `pre_ap_state_1360.c` is a read-only fresh-boot preflight.
 It records firmware, console boot time, text base, stage and hook markers,
 kernel pmap root, and the `sys_getuid` PDE. The separate

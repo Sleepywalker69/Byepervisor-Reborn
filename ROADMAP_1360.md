@@ -34,7 +34,7 @@ working research foothold, not a complete 13.60 jailbreak.
    `+0xd60`, and the ELF's restore report. A separate read-only page walk
    reproduced the original PDE. The source, ELF, capture, and manifest are in
    `diagnostics/`. This is one page from one console boot, not a kernel ELF.
-2. **Bounded region capture — achieved for one 64 KiB window.** The page
+2. **Full bounded text and mapped-data capture — achieved on one boot.** The first page
    walker validated all sixteen addresses before changing their common
    measured leaf; it stops at a missing or unexpected mapping or a failed
    read. The capture has per-page hashes, firmware, console boot time, pmap
@@ -42,8 +42,20 @@ working research foothold, not a complete 13.60 jailbreak.
    postcheck. The documented raw x86-64 partial image begins at
    `0xffffffffddce0000`, is 65,536 bytes, and has SHA-256
    `488482d4aba95751f86c7b1906709ee2fffefd6bd5ad4beab3fcfa8fb9846685`.
-   It is confined to this one boot-specific leaf; no other text range has
-   been certified.
+   That 64 KiB result was an intermediate gate. On boot `1791893784.399222`,
+   a read-only map inventory established text base `0xffffffffd3b70000`, data
+   base `0xffffffffd4830000`, and the first missing data page at
+   `0xffffffffd9c00000`. A bounded TCP dumper transferred every page in those
+   observed ranges into two continuous **local, non-Git** files: 13,369,344
+   text bytes (SHA-256 `20da45a0910c990153fbfb7c94e16356867e0bd84f7c9fbf754a45a5dd129673`)
+   and 87,883,776 mapped-data bytes (SHA-256
+   `29a0fd3d0ff5290897981543dcc7c71e02105477597b7d4523ded09ffdfdc318`).
+   All 204 text and 1,341 data chunks passed independent hash verification;
+   the known 64 KiB text overlap matched, and read-only postchecks found all
+   3,264 text pages protected again. The user reported a responsive console.
+   The data bytes are a non-atomic live range ending at the first gap, not a
+   verified ELF `.data` section, and these files are raw memory, not a
+   reconstructed kernel ELF. No dump bytes are published to GitHub.
 3. **Separate capability checks.** Verify read-only access and restoration
    across the relevant kernel-text regions, then make any write experiment
    reversible with exact preimage and post-write checks. Check whether the
@@ -56,6 +68,28 @@ working research foothold, not a complete 13.60 jailbreak.
    autoloader can observe after wake. Only after that should Y2JB schedule
    later payloads. Linux requires its own much larger hardware and boot path.
 
-The immediate goal is milestone 3: distinguish read access, restoration, and
-any later write capability, and test the AP stage's causal contribution before
-calling this a general 13.60 text-access primitive.
+The immediate goal is milestone 3: separate read and write capability checks
+and clarify the AP stage's causal contribution. The full capture gate is met
+for the observed contiguous text and mapped-data ranges. No text-write
+experiment has run; the offline candidate is not a result.
+
+## Fresh-boot pre-AP comparison (13 October)
+
+On a standalone Relapse and elfldr boot, a read-only preflight reported zero
+Byepervisor stage and hook markers and a protected `sys_getuid` text PDE.
+One guarded diagnostic cleared that PDE's XOTEXT bit and read it back, then
+the host timed out before any text-read or restore report. The user reported
+an unresponsive console and unexpected `ps5upload` activity after the send.
+The diagnostic source does not launch other payloads. Its output does not
+establish whether the text read started, which instruction failed, or whether
+the PDE was restored. This is a failed and potentially confounded baseline;
+do not repeat the same live probe. After recovery, first reconcile boot and
+PDE state with read-only checks. The previous post-AP read successes and this
+pre-AP failure suggest a stage-dependent difference but do not prove it.
+
+After a new Relapse/elfldr boot, a read-only preflight confirmed zero stage
+markers and a protected PDE. A guarded read-only alias walker then found no
+present entry for the calculated direct-map alias of the target text bytes
+and stopped before any content read. It made no mapping change and supplied
+no pre-AP text bytes. The alias route is unavailable as written on that boot;
+the causal comparison remains incomplete.
