@@ -319,3 +319,22 @@ boundary is before versus after manager autoload; no payload should be
 credited or blamed without that measurement. Automatic Payload Manager
 startup has passed on three distinct boot/arm attempts, but post-chain
 safety validation has failed on all three. No further live launch was made.
+
+### Stability stop after third boot
+
+At approximately 15:05 UTC, after the full-minute control and its manager
+six-payload autoload, the user reported the PS5 frozen and still frozen on
+follow-up. The assistant had not sent a kernel-text reader or the new
+before/after watcher. The last console requests were the bounded V3 status
+reader and a read-only manager `/log` GET; no further console request was
+made after the freeze report. The failure cause is unproved. Hold all further
+live launches until the user reports recovery and a fresh boot.
+
+A host-only watcher candidate, `diagnostics/watch_postwake_autoload_1360.py`,
+was written after this result. It pins the previously used read-only V3
+status ELF, requires port 8084 closed before Y2JB, accepts an early receipt
+only when the manager countdown has at least 2.5 seconds left and `done=0`
+both before and after the read, then takes a late receipt after `done=total`.
+It has not run on the PS5. Its purpose is to distinguish a pre-autoload
+cleanup state from a post-autoload state; it does not assign causality to an
+individual payload.
