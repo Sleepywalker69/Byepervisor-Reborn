@@ -147,6 +147,14 @@ the function loads the same object's `+0x30` value via `[rbx+0x150]` and
 adds it to `[rbx+0x1e0]`, `[object+0x78]`, and `[object+0xf8]`
 (`0xffffffffd3effb00`–`0xffffffffd3effb25`). This is an additive offset
 in the observed path; calling the field a bit flag would be inaccurate.
+The constructor's other IDA caller, `sub_FFFFFFFFD469D000`, later loads
+`[object+0x30]` as a start value and `[object+0x38]` as a span, adds them,
+and passes the resulting interval to `sub_FFFFFFFFD3E39370`
+(`0xffffffffd469d4ee`–`0xffffffffd469d51d`). That callee contains an
+`unwire timeout` diagnostic and processes an address range. Taken together,
+these uses support an address-like displacement/range start for `+0x30`,
+without proving the object layout name or why the alternate path chooses
+`0x400000`.
 The source describes its separate `fix_app_wire_flag()`
 check as restricted to the current process and `/app0/eboot.bin`; the
 captured bytes alone do not prove the app-specific side effect. Hex-Rays

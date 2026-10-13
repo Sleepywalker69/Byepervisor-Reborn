@@ -397,6 +397,8 @@ remains untyped. Hex-Rays could not decompile the newly defined owner at
 `0xffffffffd3eff517`; the instruction-level trace is retained as the
 evidence. Within the same owner, the `+0x30` value is added to three
 image-context/object fields immediately after the branch, supporting an
-offset interpretation in that path. The next useful offline step is to
-type that object and trace its other consumers before choosing any patch
-behavior.
+offset interpretation in that path. A second caller of the object's
+constructor treats `+0x30` and `+0x38` as the start and span of an address
+range passed to an unwire-related routine. This narrows the field's role
+without proving its type. The next useful offline step is to map the
+constructor and range consumers before choosing any patch behavior.
