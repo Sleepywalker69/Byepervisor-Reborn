@@ -1,0 +1,6 @@
+text-pte-probe: fw=0x13600007
+text-pte-probe: dmap indexes=260,76 root=0x0000000021894000 va=0xffffffffddce8d60
+pml4e: entry=0x0000000021895023 present=1 rw=1 xotext=0 ps=0
+pdpe: entry=0x0000000021929023 present=1 rw=1 xotext=0 ps=0
+pde: entry=0x040000001dc001a1 present=1 rw=0 xotext=1 ps=1
+text-pte-probe: leaf=pde

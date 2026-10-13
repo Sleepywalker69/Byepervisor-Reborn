@@ -1,0 +1,12 @@
+{
+  "firmware": "13.60 (0x13600007)",
+  "virtual_address": "0xffffffffddce8000",
+  "length": 4096,
+  "sha256": "8291eeb4759a048f0c556273cfb9c591ff212684c5c9b76316c2f0891ec39599",
+  "source_log": "diagnostics\\captures\\kernel-text-page-1360-host.log",
+  "source_log_sha256": "ea94b9d712e8766e665a9e52ccc6b2d68750e3c19f84c73894df1f41b08c789b",
+  "known8_offset": "0xd60",
+  "capture_elf_sha256": "bb88b106bdb0963942d7b337dbefd94bb5f9a23478c357165f4b6e1f768324af",
+  "postcheck_log_sha256": "06ba9793dbc283a428b803896cbfea7849d8eed0404ddc922a7060a1eecd4b0e",
+  "postcheck_pde": "0x040000001dc001a1"
+}

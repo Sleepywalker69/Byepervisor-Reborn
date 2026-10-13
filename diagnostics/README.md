@@ -35,3 +35,22 @@ This establishes one controlled kernel-text read and restoration. It does not
 isolate whether the HV stage was necessary for that read, establish text
 writes, or turn this into a persistent kernel dump or patch facility. No
 post-wake baseline with the same one-PDE change was run before AP completion.
+
+## Bounded 4 KiB capture
+
+`kernel_text_page_1360.c` uses the same exact firmware, AP-stage, hook-state,
+and measured-PDE guards. It clears only the `XOTEXT` bit in that PDE, reads
+one 4 KiB page in sixteen 256-byte chunks, restores and reads back the PDE,
+then prints a framed hex capture. It does not request Rest Mode or leave a
+text-mapping change installed. The saved ELF is
+`kernel_text_page_1360_current_boot.elf`; this name reflects its exact
+boot-specific PDE guard.
+
+`parse_kernel_text_page.py` rejects incomplete or reordered data records,
+missing restore evidence, and a mismatch at the previously read `sys_getuid`
+bytes. Run `python -m unittest test_parse_kernel_text_page.py` from this
+directory for its synthetic parser checks. `captures/` contains the console
+stream, parsed 4,096-byte page, manifest, and an independent read-only PDE
+postcheck. These establish one captured page and restored guest PDE on the
+observed boot. They do not prove that all 13.60 text pages are readable, that
+the HV stage caused this access, or that writes to text are possible.
