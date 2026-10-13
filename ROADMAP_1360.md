@@ -639,3 +639,39 @@ Testing is paused at the user's request. Preserve recovery evidence and
 audit the manual-to-marker delta before another configured ELF run. Do not
 advance to the optional Payload Manager candidate or downstream package
 testing based on this failed marker attempt.
+
+### Recovery and controlled comparison (13 October 2026)
+
+After the user resumed work, a read-only recovery capture found the newest
+saved Byepervisor session through `HOOK arming begins; file logging paused
+until cleanup`, with no later saved event for that session. The logging gap
+cannot locate the failure: logging pauses during the hook and later file
+writes can fail. Neither title arm file nor a per-attempt marker file was
+available after reboot. Generic error history and a later coredump did not
+identify a fault in the marker path.
+
+An offline comparison found the same embedded Byepervisor ELF, V3 status ELF,
+and kexp bytes in the manual and marker images. The marker image adds the
+receipt-marker ELF and selects it in `postwake.txt`; filesystem/build blocks
+also differ. The launched PPSA01651 image had changed 69 of its 4-KiB blocks
+by the time it was recaptured, while those embedded ELFs and the configuration
+remained byte-identical. Thus a whole-image hash after launch is not a stable
+identity check for this UFS2 image; the changed blocks do not establish a
+crash cause.
+
+Both YouTube titles were restored to the known manual-mode image and fully
+read back: 336,789,504 bytes, SHA-256
+`ff1ec8eea341fc282416ba07047e51a6d0e074019c8ef10bf6b4ccea777725c0`.
+The previous marker images were preserved as backups. This restored image
+has not yet run on the new boot. The user cannot observe a live test at
+present, so no new YouTube launch, ELF send, or Rest Mode cycle followed.
+
+The next controlled comparison is one fresh-boot manual-mode wake with a
+current arm ID, independent AP-complete receipt, zero hook state, restored
+gate/IST and a matching `POSTWAKE_MANUAL` event. Only after that gate passes
+should the same pinned marker ELF be sent separately through elfldr once.
+A matching per-attempt marker file and a second independent receipt would
+isolate marker execution from automatic post-wake orchestration. The private
+control script has five passing offline failure-path tests; it has not run
+on PS5. No inference about functional kstuff, fPKG, or Linux support follows
+from this recovery check.
