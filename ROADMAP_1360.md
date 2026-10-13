@@ -752,6 +752,16 @@ branches, and verifies writes with a rollback attempt on failure. Its
 compiled tables and embedded payload passed offline verification. It needs
 a fresh manual-mode boot and live run; no kstuff success is claimed yet.
 
+That revised candidate was then tried once on a fresh manual post-HV boot.
+The current-boot AP receipt passed, but the loader stopped at `info_map`
+before any ShellCore patch and skipped follow-on work. The operator confirmed
+the home screen remained responsive. Source review found a second ordering
+error: the preimage gate used kstuff's remote syscall before that facility
+was installed. A third candidate places the gate after uELF/IDT/syscall
+setup and before the ShellCore patch call; its 34 compiled rows pass offline
+verification. This ordering permits earlier kernel changes before the gate,
+so a gate failure is not a clean rollback. The third candidate has not run.
+
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
 while IST3 and IST7 are zero in that capture. This is one non-atomic boot,

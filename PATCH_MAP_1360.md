@@ -289,3 +289,13 @@ address space and is compiled offline. It has not run on the console. The
 failed loader had already entered its r0gdb setup, so a fresh boot is the
 next live-test boundary. No new kernel semantic patch, loaded kstuff status,
 or fPKG behavior is proved by this ShellCore byte match.
+
+A second guarded loader run on a fresh manual-mode post-HV boot passed the
+attempt receipt check but reported `reason=info_map` and skipped follow-on
+work. The operator again confirmed a responsive home screen. Source order
+explains the likely cause: both guarded candidates called kstuff's remote
+syscall before its uELF, IDT, and syscall route were installed. A third
+candidate moves the preimage gate after those setup steps and before
+ShellCore patching. Its compiled 34-row table passes offline checks, but
+the later gate can no longer certify that preceding kernel setup was inert.
+It has not run on the console.

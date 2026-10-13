@@ -106,17 +106,23 @@ The outer loader reported the failure and skipped its follow-on work; the
 operator confirmed the home screen remained responsive. It did **not**
 establish loaded kstuff or fPKG support. A revised source candidate uses a
 target-process buffer for that call and verifies compiled patch/preimage
-tables offline. It has not run on the PS5.
+tables offline. Its single live run stopped at `info_map`, still before the
+ShellCore patch loop, with the home screen responsive. Source review then
+found that this preflight ran before kstuff installed its remote-syscall
+facility. A third private candidate moves the guard after that setup but
+before ShellCore writes; it passes offline table checks and has not run.
 
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake
    failure is isolated. Run a fresh manual-mode wake only with an operator
    present and require an attempt-specific AP receipt.
-2. For the revised guarded kstuff loader, repeat the exact current-boot
-   ShellCore and receipt checks, then test its target-process module-info
-   path. Require its own success log and readback before calling kstuff
-   loaded; socket transmission alone is insufficient.
+2. For the next guarded kstuff loader, repeat the current-boot receipt
+   check, then test the remote module-info path after the syscall facility
+   is installed. The guard now runs after some kernel changes, so a failed
+   guard does not imply an unchanged system. Require a loader success log
+   and functional readback before calling kstuff loaded; socket
+   transmission alone is insufficient.
 3. Verify scoped PPR mount, title execution and key cleanup independently.
    The A53 13.60 image/profile is a separate unresolved input. Do not call
    the byte map complete fPKG, HEN, or Linux support.
