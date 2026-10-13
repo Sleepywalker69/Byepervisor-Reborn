@@ -123,3 +123,45 @@ with zero emulations during the AppInstUtil probes establishes
 interception, not responsibility for the unresolved library load. A
 fresh-boot control before loading kstuff is required to separate the
 downstream hook from the native loader's behavior.
+
+## Native installer and registered-title launch check
+
+The silent AppInstUtil probes were missing a runtime dependency. The PS5
+Payload SDK issue [#26](https://github.com/ps5-payload-dev/sdk/issues/26)
+requires `libSceIpmi` before `libSceAppInstUtil` in the ELF dependency order.
+A rebuilt read-only probe with that order reached `main`, initialized the
+installer, queried the test content ID, and terminated normally. The first
+correctly linked install request using `/data/...` returned `0x80b2150f`.
+A read-only alias check then confirmed the package under `/user/data/...`.
+One install request using that URI returned 0 and the expected content ID.
+Its first status poll was `transferring`; the next poll returned
+`0x80a30003`. A separate status query afterward returned
+`rc=0 status=playable error=0 progress=100`. The installed title files and
+one app.db content row were independently observed. The private package,
+app.db and ELF artifacts remain off GitHub.
+
+A one-shot, in-process `sceSystemServiceLaunchApp` call for the registered
+test title ran on the same boot. Foreground user initialization and lookup
+both returned 0, and the call used a 32-byte context with that user ID.
+Sony's launcher returned `0x80f00800`, a negative result. No title marker
+appeared and an immediate process snapshot did not show the test title.
+The 110,912-byte launch probe SHA-256 was
+`2345ee742214caed4600a884722a776da1e46b0b16c77331aa2cc5ed41202305`;
+its 602-byte host log SHA-256 was
+`890746d93e8577e32306468d12e9cedd03ed1175abbe3883841829e5df7c6878`.
+This is a rejected launch, not a demonstrated homebrew run.
+
+The post-launch kstuff reader still reported `ppr_plaintext_g6` traps,
+profile, and applied as zero, and fPKG verify/clear as zero. Its 4,185-byte
+log SHA-256 was
+`1a9b0d4cea1272f5ce5c643d7ec610ac1d2b4b5f776b96c8f7d287dcb330f340`.
+The native launcher rejection alone does not identify its cause. In
+particular, package registration and the `playable` installer string do not
+prove runtime authorization.
+
+The public [A53 PPR patcher](https://github.com/drakmor/ppr-patch/blob/main/README.md)
+lists exact profiles only through 11.40. Its standalone fast installer is
+therefore not a ready 13.60 dependency. The current kstuff opt-in source
+gate and matching kernel offsets do not supply that A53 profile. The next
+PPR gate is to identify the 13.60 A53 image and validate its full selector
+and caller layout before a plaintext package-read test.

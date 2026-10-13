@@ -493,3 +493,17 @@ be attempted, followed by a title-registration readback, PPR counters,
 and a user-observed launch of the test title. Do not resend the earlier
 installer on the current boot while its outcome and old probe processes
 remain ambiguous.
+
+The AppInstUtil load path completed after adding its missing `libSceIpmi`
+dependency before `libSceAppInstUtil`. One corrected local-URI install
+request registered the private test title; an independent query returned
+`playable`, zero error, and 100% progress. A separate one-shot launch call
+returned `0x80f00800`; no app marker or process was observed. PPR and fPKG
+counters remained zero. See `DOWNSTREAM_AUDIT_1360.md` for exact receipts.
+
+Next gate: do not equate registration with runtime execution. Establish
+whether a known-good 13.60 PS5 homebrew package launches under this exact
+environment, and separately identify the 13.60 A53 PPR profile needed for
+plaintext PS5 fake-package reads. The public A53 fast installer has exact
+profiles only through 11.40. Do not load it as a 13.60 solution or claim
+fPKG support from the current kernel-only PPR opt-in.
