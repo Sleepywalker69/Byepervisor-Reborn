@@ -72,6 +72,15 @@ running console, and no rebuilt loader has been live-tested with it. This
 finding concerns future kstuff/ShellCore activity; it does **not** explain
 the earlier marker-image power-off, when this table was not newly deployed.
 
+A second offline pass decoded the original and overlaid instructions for all
+34 retail entries. It found 16 branches preserving their original target,
+four whose condition is removed in favor of fallthrough, two redirects to
+code caves patched by the same table, and one intentional displacement edit
+inside a branch. Ten entries are non-branch semantic changes. The sole
+unexpected branch target is `0x36ae22` above. This checks encoding and local
+branch targets only; it cannot validate the intended feature behavior or
+the loaded module's bytes.
+
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake
