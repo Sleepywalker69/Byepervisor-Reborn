@@ -455,3 +455,13 @@ profile's cleanup deltas land on calls to `ppfs_put_cmac_index` and
 `ppfs_put_xts_index`. This narrows the ABI uncertainty but does not remove
 the source's `FWVER > 0x1160` gate or establish live PPR/fPKG behavior.
 The private test receipt and exact call bytes are in `DOWNSTREAM_AUDIT_1360.md`.
+
+An exact-13.60 compile-time PPR opt-in patch was then prepared against the
+public kstuff-lite checkout. The default source path remains disabled above
+11.60, while `-DKSTUFF_ENABLE_PPR_1360=1` admits only 13.60. Both the
+unmodified and opt-in full loader ELFs now build offline with a separately
+cross-built SQLite 3.46.1 library; the opt-in ELF is 1,523,688 bytes and
+SHA-256 `fd3a5a355c954990c736a162c4dea0b681e64550798dc7475534d3ea3aee161b`.
+The patch and build provenance are in `downstream/KSTUFF_1360_BUILD.md`.
+Neither ELF has been launched. Static call-site matches and a completed
+build do not establish runtime PPR, fPKG, or the whole kstuff offset table.

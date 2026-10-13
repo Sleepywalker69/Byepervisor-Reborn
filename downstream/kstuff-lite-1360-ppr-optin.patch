@@ -1,0 +1,16 @@
+diff --git a/ps5-kstuff/uelf/fpkg.c b/ps5-kstuff/uelf/fpkg.c
+index 1d1b856..98a1fd2 100644
+--- a/ps5-kstuff/uelf/fpkg.c
++++ b/ps5-kstuff/uelf/fpkg.c
+@@ -99,5 +99,9 @@ static const struct ppr_profile* get_ppr_profile(void)
+ {
+-    /* Keep the newer profiles and offsets available for later work, but do
+-     * not arm plaintext PPR interception above 11.60. */
++    /* 13.60 opt-in requires the matching-image offset audit. Keep every
++     * other firmware above 11.60 disabled, including the other fw13 cases. */
++#if defined(KSTUFF_ENABLE_PPR_1360) && KSTUFF_ENABLE_PPR_1360
++    if(FWVER > 0x1160 && FWVER != 0x1360)
++#else
+     if(FWVER > 0x1160)
++#endif
+         return NULL;
