@@ -522,3 +522,17 @@ bytes, while `GET_CONF` worked. The next acquisition route must produce a
 matching A53 image or validated current memory map; scanning further
 unverified addresses or loading the older fast installer would not advance
 the gate.
+
+### Next configured-payload gate
+
+An isolated Y2JB branch `postwake-marker-1360` now selects one diagnostic
+ELF after the existing same-attempt AP receipt gate. The diagnostic writes
+an arm-ID-named file only after independently checking the live receipt and
+one matching YouTube arm file; it launches no other payload. Its source is
+`diagnostics/postwake_receipt_marker_1360.c`. The 13.60 SDK build, Y2JB
+parser tests, ZIP checks, and GitHub UFS2 image build passed offline. The
+image is not installed, and no marker has run on the PS5. The live gate is
+a fresh boot, one Rest Mode/wake cycle, a new marker with matching arm/base/
+root, and a separate V3 status read matching the marker's boot time and
+showing AP complete, hook zero, and restored gate/IST. Only then count a
+configured post-wake ELF as executed rather than merely transmitted.
