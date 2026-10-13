@@ -389,3 +389,11 @@ undefined code was bounded from `0xffffffffd3eff3a0` to
 the image-activation context; the structure field and app-specific effect
 still need proof. This is documented in `PATCH_MAP_1360.md`; no patch
 was made.
+
+The next stack-reference slice shows the `aslr` redirect writes into a
+newly allocated 424-byte object returned by `sub_FFFFFFFFD469AB10` and
+stored at image-context offset `+0x150`. The object's field `+0x30`
+remains untyped. Hex-Rays could not decompile the newly defined owner at
+`0xffffffffd3eff517`; the instruction-level trace is retained as the
+evidence. The next useful offline step is to type that object and follow
+the consumers of field `+0x30` before choosing any patch behavior.

@@ -137,13 +137,23 @@ at `0xffffffffd3effabc`. Nearby conditional branches at
 `0xffffffffd3effa64` and `0xffffffffd3effa88` already target the redirect
 block. This explains the unusual negative `aslr_fix_end` delta: kstuff's
 scoped trap invokes its `fix_app_wire_flag()` check and then selects an
-existing alternate block. The source describes that check as restricted
-to the current process and `/app0/eboot.bin`; the captured bytes alone
-do not type `[rbp-0x60]` or prove the app-specific side effect. The private
+existing alternate block. A stack-reference scan found `[rbp-0x60]` set
+at `0xffffffffd3eff823` from the return of `sub_FFFFFFFFD469AB10`, also
+stored to `[rbx+0x150]`. That callee allocates a 424-byte object and
+returns its base pointer; therefore the alternate block's `+0x30` write
+targets this newly allocated object. The callee's true type and field
+meaning remain unverified. The source describes its `fix_app_wire_flag()`
+check as restricted to the current process and `/app0/eboot.bin`; the
+captured bytes alone do not prove the app-specific side effect. Hex-Rays
+decompilation of the newly bounded function failed at
+`0xffffffffd3eff517`, so this trace relies on instructions and cross
+references rather than pseudocode. The private
 IDB was saved after this definition; its pre-edit copy is
 `kernel-analysis-1360.pre-aslr-define.i64`, whose SHA-256 matched the
 original pre-edit IDB at
 `4c1c929d0194ac8bd87a17ba70dd8eb8c1379d40bd67fd250092ff7aafc36bc7`.
+The saved post-definition IDB hashes
+`3e8761f9387bba77c2f8fd25471cca3e146f02779427e1ea50ddf0f4bd79504c`.
 No patch or live test was made from this trace.
 
 ## Gate before a downstream patch
