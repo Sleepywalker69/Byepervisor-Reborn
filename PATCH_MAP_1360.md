@@ -142,7 +142,12 @@ at `0xffffffffd3eff823` from the return of `sub_FFFFFFFFD469AB10`, also
 stored to `[rbx+0x150]`. That callee allocates a 424-byte object and
 returns its base pointer; therefore the alternate block's `+0x30` write
 targets this newly allocated object. The callee's true type and field
-meaning remain unverified. The source describes its `fix_app_wire_flag()`
+meaning remain unverified. Immediately after the alternate block rejoins,
+the function loads the same object's `+0x30` value via `[rbx+0x150]` and
+adds it to `[rbx+0x1e0]`, `[object+0x78]`, and `[object+0xf8]`
+(`0xffffffffd3effb00`–`0xffffffffd3effb25`). This is an additive offset
+in the observed path; calling the field a bit flag would be inaccurate.
+The source describes its separate `fix_app_wire_flag()`
 check as restricted to the current process and `/app0/eboot.bin`; the
 captured bytes alone do not prove the app-specific side effect. Hex-Rays
 decompilation of the newly bounded function failed at

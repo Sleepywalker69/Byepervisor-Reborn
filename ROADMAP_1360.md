@@ -395,5 +395,8 @@ newly allocated 424-byte object returned by `sub_FFFFFFFFD469AB10` and
 stored at image-context offset `+0x150`. The object's field `+0x30`
 remains untyped. Hex-Rays could not decompile the newly defined owner at
 `0xffffffffd3eff517`; the instruction-level trace is retained as the
-evidence. The next useful offline step is to type that object and follow
-the consumers of field `+0x30` before choosing any patch behavior.
+evidence. Within the same owner, the `+0x30` value is added to three
+image-context/object fields immediately after the branch, supporting an
+offset interpretation in that path. The next useful offline step is to
+type that object and trace its other consumers before choosing any patch
+behavior.
