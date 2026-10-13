@@ -24,3 +24,5 @@ shellcode:
     pop     rbx
     jmp     rcx                         // jump to init_cb
 .size shellcode, .-shellcode
+
+.section .note.GNU-stack,"",@progbits

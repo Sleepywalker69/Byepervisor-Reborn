@@ -1,0 +1,12 @@
+#ifndef BYEPERVISOR_STAGE_STATUS_H
+#define BYEPERVISOR_STAGE_STATUS_H
+
+#include <stdint.h>
+
+/* These values identify completed stages, not proof of lasting HV control. */
+#define STAGE_HOOK_FIRED  UINT64_C(0x484F4F4B5F464952)
+#define STAGE_AP_ENTERED  UINT64_C(0x41505F454E544552)
+#define STAGE_AP_COMPLETE UINT64_C(0x41505F434F4D504C)
+#define STAGE_AP_INVALID  UINT64_C(0x41505F494E56414C)
+
+#endif

