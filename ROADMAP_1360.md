@@ -1,5 +1,7 @@
 # From 13.60 AP completion to a usable post-HV chain
 
+Current downstream state is reconciled in [DOWNSTREAM_AUDIT_1360.md](DOWNSTREAM_AUDIT_1360.md#v5v8-offline-reconciliation-and-remaining-functional-gates). Live work is paused after the reported V7 kernel panic. V8 is an offline build only; no fPKG has demonstrably mounted and run as a title.
+
 The 13 October 2026 run on one regular PS5 reached `STAGE_AP_COMPLETE` after
 the fork's 16-VMCB validation and write/readback loop. A separate read found
 the marker and restored IDT gate/IST. A guarded one-PDE change enabled an
@@ -817,3 +819,9 @@ stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
 while IST3 and IST7 are zero in that capture. This is one non-atomic boot,
 so a future loader run still needs live preimage, CPU-owner and restoration
 checks before relying on its IST writes.
+
+### Current gate order after offline V5–V8 reconciliation
+
+The V5 and V6 host streams prove the 34-site original-byte check passed and the inner loader returned failure. Source flow points to ShellCore patch or dynamic-hook failure as the ordinary return path, but the exact operation and rollback state were not captured. The V7 stream contains no inner checkpoint; the operator reported a kernel panic. Its early stop cannot be attributed to the numeric diagnostic helper or another specific instruction. V8's smaller binary delta does not qualify it for live use. The next live action requires explicit operator resumption and an observed recovery state.
+
+After resumption, use one supervised, fresh-boot test at a time: exact artifact hash; new V3 arm/completion receipt; one expected checkpoint; byte-exact durable log; stop on mismatch, missing output or instability; and a recovery plan before sending. The first downstream capability gate is a reliable loaded module with an independent health check. Then require ShellCore applied-byte and rollback readback, runtime import/GOT and PPR hook verification, original mount return and synthetic-pair cleanup, exact 13.60 A53 evidence or a separately justified alternative, and finally a known-good fPKG's install, mount/read, process or visible execution, and cleanup. Neither installer `playable`, PPR stage 9, nor an ELF socket send meets that final gate. Automatic post-wake delivery remains lower priority than the manual receipt-gated route.

@@ -1,5 +1,7 @@
 # FW 13.60 kstuff gates and offset audit
 
+Current V5–V8 reconciliation and the remaining functional gates are in [DOWNSTREAM_AUDIT_1360.md](DOWNSTREAM_AUDIT_1360.md#v5v8-offline-reconciliation-and-remaining-functional-gates). The archived V8 full loader is built but unrun; the V7 kernel panic keeps live work paused. Earlier kernel-side PPR counters and the 78-entry byte inventory do not establish a mounted, running fPKG.
+
 This is an offline audit of the local `EchoStretch/kstuff-lite` source at
 `48cd2c4` and one saved retail 13.60 capture. It distinguishes a table
 entry, captured bytes, control-flow evidence, and live behavior. The exact

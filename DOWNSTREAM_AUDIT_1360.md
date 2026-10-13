@@ -1,5 +1,7 @@
 # 13.60 downstream binary audit
 
+Current status: see **V5–V8 offline reconciliation and remaining functional gates** below. Historical sections retain their original evidence ceilings. Live work is paused after the reported V7 kernel panic.
+
 ## Installed kstuff fPKG ELF, offline evidence
 
 The installed file `/data/pldmgr/payloads/kstuff-fpkg/kstuff-fpkg-1.13-dr-test6.elf`
@@ -270,3 +272,32 @@ call. Its blocked branch passed on this boot; its clear/launch branch
 has not been exercised. This isolates the `0x80940010` observation
 from package-format acceptance, which must be evaluated on the next
 fresh boot with YouTube closed.
+
+## V5–V8 offline reconciliation and remaining functional gates
+
+The fork's `attempt-receipt-1360` branch and remote matched `58a587a` before this documentation update. The private candidate remains based on `EchoStretch/kstuff-lite` `48cd2c4` with uncommitted source changes. A separately reviewed full-kstuff feature reference (`EchoStretch/kstuff`, `elfldr-compatability`, `d44a254`) shows coordinated resident syscall/trap dispatch, fake-key registration and clear, and PFS crypto emulation. It is not a 13.60 candidate. Raw captures, private sources, ELFs, logs, and databases remain outside this repository.
+
+The archived full loaders and single embedded payloads were independently SHA-256 checked without changing the originals:
+
+| Version | Full loader SHA-256 | Embedded payload SHA-256 | Status and narrow result |
+| --- | --- | --- | --- |
+| V5 | `8e3dac338637a75231eb43a2174a7c5535cd2c8691f25e36063ae90aa368721b` | `331d99dc44f7d0107250616a6c3ce6c274fc004e1b1427c2fdad69059d7b7418` | **Executed once.** Fresh-boot V3 receipt passed; 34 live ShellCore originals matched; inner returned failure and outer skipped follow-ons. |
+| V6 | `91ef11f071eb05a51dda6048e42726715ad8862128df29e3fa97d891c092ca35` | `36734fbf09c79137b27dc0e38f9b94c6398ff6c03ecb3d7be058215929fa63ac` | **Executed once.** Same checkpoints and byte-identical host stream as V5; added inner `SC_PATCH_V1` line did not reach the host. |
+| V7 | `3343e74b60fad68bb91f7a611ed0a0d1af84d2afd640a1df3ed9bbfcbc4402c6` | `5d8771b2d3ec1290757bbe0b55ee996ba9deb750cd182b1fb6d5c6e37bae1e50` | **Sent once.** Receipt passed, then host got only its initial outer/library line and timed out; the operator reported a kernel panic. No preimage or numeric return checkpoint was captured. Never rerun as a diagnostic. |
+| V8 | `1fb6124e8f562c63120561fac3de5b35723956841217c9cdbb7d2f9a02d456c9` | `8daeb9d96d38bd6d759f1445e1af6ef5b020a19241925b88f3a43efd9a49831d` | **Built/offline only.** Compiled 34-row verification passed. It has not been sent or executed. |
+
+Control-flow review narrows V5/V6's ordinary nonzero inner return after the successful preimage gate to `patch_shellcore()` or its dynamic hook installation. It cannot select a page lock, patch copy/readback, live import/GOT lookup, wrapper mapping, or GOT-install failure. The saved ShellCore ELF has all seven required on-disk NIDs and PLT relocations; that does not validate runtime dynlib structures, GOT values, or import targets. V6's `SC_PATCH_V1` write ran inside the inner process after syscall/IDT changes, so its absence from host output cannot prove the branch was skipped. V7's initial `SceLncUtil/getAppStatus` line is an outer/library observation, not evidence that inner entry or the preimage gate ran. Its missing early checkpoint and reported panic do not identify a fault instruction.
+
+Aligned embedded payloads differ at 1,014 bytes for V5/V6, 23,984 for V6/V7, and 242 for V6/V8. V7 also shifted embedding by `0x6d`; V8's smaller difference does not prove safety. Only the present V8 source state is retained as a source tree. The V5–V7 source snapshots are not separately archived, so their exact historical source-tree hashes cannot be supplied from the current checkout. The current V8 `ps5-kstuff/main.c` SHA-256 is `e2b76e376deea66d38762ccf4ad44575d996c663a3a758ba92eecde1434ee968`; the current V8 full loader and payload hashes match the table.
+
+The source attempts reverse readback-verified restoration of touched ShellCore sites on patch failure and has a separate GOT rollback path. Neither restores prior IDT/TSS, cloned syscall tables, or crypt changes when the inner function returns failure. There is no independent V5/V6 post-return readback of ShellCore sites, GOT, IDT/TSS or resident health. A responsive home screen is a liveness observation only.
+
+| Remaining gate | What is proved | What would falsify it / next bounded observation |
+| --- | --- | --- |
+| Load and health | Earlier opt-in observation build accepted a reader; V5/V6 failed and V7 panicked. | A nonzero inner return or unstable console falsifies load. Require an exact-build host return, resident check/reader snapshot, and independent post-load state on a fresh boot. |
+| ShellCore patch and hook transaction | 34 original bytes matched live; corrected two-byte row compiled. Seven imports exist on disk. | Any applied or restored byte mismatch, invalid live import/GOT, or stale base. Require current-boot preimages, per-site applied readback, hook/GOT target readback and failure restoration readback. |
+| PPR lifecycle | Earlier opt-in run reached kernel-side profile, fake-package verify and G6 traps. | A missing exact scope/hook return, failed mount, or pair not released. Capture original mount return, hook result, synthetic-pair ownership, clear/unmount, and mounted-content read in one bounded test. Stage 9 alone is not mount success. |
+| A53 13.60 | Retail `releases/13.60` identified; historical-address reads returned status `0x20`, zero bytes. | A verified preimage/selector mismatch or unavailable read. Decode `0x20`; obtain exact 13.60 image or independently justified current map before any A53 change. |
+| Functional fPKG | Test package installed and reported playable; a folder-app launch control succeeded. | Rejected launch, missing mount/read, no test-title process or visible execution, or leaked key pair. Final known-good 13.60 homebrew fPKG requires independent install, mount/read, process or on-screen run, and cleanup evidence. |
+
+**Pause:** no console contact, image upload, Rest Mode cycle, ELF send or live test until the operator explicitly resumes. The console's recovery state after V7 is unknown. The first resumed interaction must establish that state before selecting one hash-pinned test with a fresh attempt receipt, durable log, checkpoint, stop condition and recovery plan. An automated payload chain is not a qualification path.

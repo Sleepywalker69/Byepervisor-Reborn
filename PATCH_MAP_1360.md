@@ -1,5 +1,7 @@
 # 13.60 kernel patch-map working notes
 
+Current V5–V8 return-path and rollback findings are in [DOWNSTREAM_AUDIT_1360.md](DOWNSTREAM_AUDIT_1360.md#v5v8-offline-reconciliation-and-remaining-functional-gates). This map records byte/site evidence; no V5/V6 ShellCore applied-byte or restoration readback exists, and V7's early panic did not yield a preimage checkpoint. Live work remains paused.
+
 The complete published kstuff-lite 13.60 offset-table byte inventory and
 disabled-path audit are now in [KSTUFF_1360_DISABLED_MAP.md](KSTUFF_1360_DISABLED_MAP.md).
 Its 78 entries all resolve inside the verified private capture or to the
