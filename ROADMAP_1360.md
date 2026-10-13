@@ -582,3 +582,32 @@ now accepts the same exact three-line prefix as the coordinator, with a
 bounded file size. Host parser cases cover appended status, missing and
 mismatched fields; the new marker ELF compiles with SDK v0.44. Its live
 post-wake execution remains unverified.
+
+### Current live boundary and next boot gate
+
+The one-shot exact-title close request identified PPSA01651 but did not
+return a close result before its host socket timed out. A later process
+probe found no `eboot.bin` app, but does not establish how the close call
+ended. On that same boot, native first-page reads of both installed
+YouTube images and both saved backups returned `EIO`; FTP also returned
+`EIO` for the installed test package while small metadata remained
+readable. The cause is undetermined. A subsequent boot-identity read
+confirmed this was still the same boot. A kstuff reader printed only its
+start line, then timed out before its attach line; its console lifetime
+is unknown. Neither YouTube image was replaced and no further package
+launch was made.
+
+The next live gate requires a fresh boot and a small content-read test of
+both title images and the installed package before any upload, rename,
+or launch. Confirm the PPR synthetic-pair baseline before another package
+attempt. The private two-title deployment script now verifies both old
+images and both staged images before promoting either; fake-FTP tests
+cover a second-title read failure with zero mutations. The revised marker
+image is still offline only.
+
+The opt-in mount-result instrumentation has also been rebuilt as a full
+kstuff loader with its embedded kernel payload, plus a matching one-shot
+reader. The earlier 675,864-byte kernel payload ELF was mislabeled as a
+loader and has not been sent. These new artifacts remain private and
+untested on PS5; they cannot substitute for the fresh-boot content-read
+and zero-pair gates.
