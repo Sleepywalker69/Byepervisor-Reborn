@@ -224,3 +224,41 @@ A subsequent independent kstuff reader still reported zero PPR G6 traps,
 profile matches, applications, fPKG verify/clear events and outstanding
 plaintext key pairs. The result proves the narrow kernel-side 13.60 profile
 gate is reachable; it does not prove staging, A53 PPR changes, or fPKG launch.
+
+## Corrected plaintext package live result
+
+A privately built 603,009-byte test package for title `PPSA99099` has
+SHA-256 `2689572d106b4fa83a866276fad03dc42caecef110cdba94b89b7a66cdd31666`.
+It was built using the public `ps5upload-fpkg` plaintext/no-auth mode,
+contains the expected `PPRPLAIN-NOAUTH!` superblock marker and mode
+`0x0d`, and declares `applicationDrmType: standard`. The builder's 47
+checks and an independent bounded check against kstuff's FIH/superblock
+validator passed. The package itself and console logs remain private.
+
+It was uploaded once and byte-verified. Native installation was submitted
+once; an independent status read subsequently returned `playable`, zero
+error and 100% progress. A single native launch request returned
+`0x80940010` with `accepted=0`. It did not prove title execution.
+
+Before that launch, the independent kstuff reader had zero PPR/fPKG counts.
+Afterward, it reported `fpkg verify=1 verify_emu=1`,
+`ppr_plaintext_g6 traps=2 profile=1 applied=2`, a matched verifyImage
+return address, zero malformed-request count, and hook trace stage 9.
+The wrapper labels stage 9 as the one-shot mount latch being armed; it
+precedes the original mount return. The reader also reported one
+outstanding synthetic key pair and zero clear-key events. This proves
+the corrected package reached the 13.60 kernel-side PPR/fPKG path.
+It does not establish A53 plaintext handling, a successful mount, or
+playable homebrew. No repeat launch was attempted while the key-pair
+lifecycle is unresolved.
+
+A delayed read-only snapshot still showed one outstanding synthetic key
+pair and no clear-key event. The source wrapper releases a retained pair
+if its original mount returns failure; this persistent count is consistent
+with a mount held by the system, but it is not an independent mount-success
+receipt. The title's visible sandbox and PFS mountpoint directories were
+empty. A separate read-only process/app-info probe identified the running
+`eboot.bin` as `PPSA01651` YouTube on this boot. Public ps5upload
+launcher code documents `0x80940010` as an already-running-app condition
+on FW13.60. The next launch test needs a fresh boot, a zero-pair baseline,
+and YouTube closed; no second launch was made on this boot.

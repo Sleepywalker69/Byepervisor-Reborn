@@ -548,3 +548,25 @@ returned success. A separate reader still showed zero PPR G6, fPKG and
 plaintext key-pair activity. This validates the narrow kernel-side gate,
 not the A53 selector or a playable fPKG. The A53 image/profile and a
 functional package-read/launch check remain required.
+
+The next bounded package test used the exact plaintext/no-auth marker
+format instead of the earlier unmarked/free-DRM package. Its private
+603,009-byte `PPSA99099` package passed offline structural checks and
+was installed once; independent native status reported `playable`.
+One launch returned `0x80940010`, `accepted=0`. A before/after kstuff
+reader found one fake-package verify emulation and two PPR G6
+applications, with a matched 13.60 profile and hook stage 9 (mount
+latch armed). One synthetic key pair remained outstanding and clear-key
+count stayed zero. This advances the proof to the kernel-side PPR path,
+but title execution, successful mount, A53 plaintext processing, and
+proper key-pair release remain open. The next gate is an exact
+mount/clear lifecycle review and bounded read-only status snapshot
+before any more launch attempts.
+
+The delayed read-only snapshot retained the single synthetic key pair.
+An app-info probe identified the active big-app process as
+`PPSA01651` YouTube; the public ps5upload launcher source documents
+`0x80940010` for another app already running on FW13.60. Run the next
+single launch only on a fresh boot with a zero-pair baseline and YouTube
+closed. Use before/after PPR counts and actual title execution as the
+acceptance gate.
