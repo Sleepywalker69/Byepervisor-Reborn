@@ -123,7 +123,20 @@ research question and must not be inferred from this gate.
    path: after Relapse handoff it sends the exact tested V3 hook ELF, stores
    the arm values in a console file, and queries the independent status after
    wake. Its offline ZIP passes archive and embedded-ELF hash checks; no
-   `download0.dat` is installed yet and no later payload is enabled. Verify
+   `download0.dat` was built by the artifact-only GitHub workflow and installed
+   in both PPSA01651 and PPSA01652 with full staged and final readback hashes;
+   the previous images were retained under backup names. The first PPSA01652
+   launch showed Relapse clean handoff, then its single immediate local
+   elfldr connect failed before V3 arm and before Rest Mode. Port 9021 was
+   unreachable from the host immediately afterward, then reachable later;
+   delayed readiness is plausible but not yet proven inside the console.
+   A bounded readiness wait passed offline tests and was built as a new UFS2
+   image. Both title files were replaced after YouTube was closed; staged and
+   promoted full-file hashes matched
+   `b2914ebcb41fbc0d507d63b9db5383d7da131446f7163b67de030e4ebaa66f8d`.
+   The previous copies remain under `download0.dat.pre-v3wait-20261013`.
+   This revised image has not yet been launched. No later payload is enabled.
+   Verify
    YouTube and elfldr survival before choosing a surviving post-wake
    orchestrator; a completed socket send is not module completion.
 4. **Downstream capability: pending.** Compare full Kstuff's desired behavior
