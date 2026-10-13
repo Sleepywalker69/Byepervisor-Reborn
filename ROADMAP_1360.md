@@ -672,7 +672,9 @@ gate/IST and a matching `POSTWAKE_MANUAL` event. Only after that gate passes
 should the same pinned marker ELF be sent separately through elfldr once.
 A matching per-attempt marker file and a second independent receipt would
 isolate marker execution from automatic post-wake orchestration. The private
-control script has five passing offline failure-path tests; it has not run
+control script has seven passing offline success/failure-path tests, including
+rejection of any second title arm and preservation of unknown partial-send
+state; it has not run
 on PS5. No inference about functional kstuff, fPKG, or Linux support follows
 from this recovery check.
 
@@ -685,3 +687,11 @@ not ready to apply unchanged. The [kstuff audit](KSTUFF_1360_DISABLED_MAP.md)
 records the exact finding, source-only candidate fix, firmware gates, and
 unverified A53/loaded-module boundaries. These offline checks did not
 launch a payload or change the console.
+
+The corrected 13.60 kstuff candidate has since compiled as a full loader in
+private storage. A pinned offline verifier parsed all 34 retail ShellCore
+patch rows from its embedded payload and confirmed the corrected two-byte
+`90 e9` entry at `0x36ae22`. The matching payload binary is embedded once.
+This closes the source-to-build check for that table; loaded ShellCore bytes,
+the dynamic PPR hook, A53 behavior, mount result, key cleanup and fPKG launch
+still require separate live evidence. The full loader has not run on PS5.
