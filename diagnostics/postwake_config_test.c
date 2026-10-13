@@ -15,6 +15,8 @@ int main(void)
   check("manual\n", 0, "");
   check("manual\r\n", 0, "");
   check("elf=pldmgr.elf\n", 1, "pldmgr.elf");
+  check("elf=postwake_receipt_marker_1360.elf\n", 1,
+        "postwake_receipt_marker_1360.elf");
   check("elf=my-payload_1.elf", 1, "my-payload_1.elf");
   check("", -1, "");
   check("auto", -1, "");
