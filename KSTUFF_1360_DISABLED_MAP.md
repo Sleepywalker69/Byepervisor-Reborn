@@ -37,7 +37,7 @@ cleanup and cross-boot stability are not settled by an in-range address.
 | `KSTUFF_OBS` | Optional instrumentation; enabled in the observed 13.60 candidate to expose counters. | Associate each counter change with an exact operation and module build; counters alone do not prove fPKG launch. |
 | `USE_INT3_SYSCALL_HOOK` | Defined as `1` in the resident loader; it is active, not a disabled feature. | Check IDT/TSS ownership and downstream cleanup separately from the pre-kstuff Byepervisor gate equality. |
 | Automount | The loader skips scanning and mounting when `/data/.kstuff_noautomount` exists. | Inspect this switch on a test boot before attributing a missing mount to offsets. Do not conflate automount with PPR emulation. |
-| ShellCore retail patches | The 13.60 table is selected by the full loader and is not disabled. The loader also installs a separate dynamic PPR hook. | Match the exact on-disk and live ShellCore build, patch preimages, and hook lifecycle. One table entry below needs correction before a full-loader candidate is considered. |
+| ShellCore retail patches | The 13.60 table is selected by the full loader and is not disabled. The loader also installs a separate dynamic PPR hook. | Match the exact on-disk and live ShellCore build, patch preimages, and hook lifecycle. One table entry below was corrected in an offline candidate that has not been tested live. |
 
 The `#if 0` blocks in the optional GDB stub and r0gdb sources are not
 automatically required for the resident kstuff feature path. Testkit and
@@ -80,6 +80,12 @@ inside a branch. Ten entries are non-branch semantic changes. The sole
 unexpected branch target is `0x36ae22` above. This checks encoding and local
 branch targets only; it cannot validate the intended feature behavior or
 the loaded module's bytes.
+
+An opt-in observation/mount-result full loader was rebuilt privately with
+that source-only table correction. The ELF is pinned in the private
+investigation record and has **not** run on the console. It is a candidate
+for a later supervised post-receipt test, not evidence that the fPKG path
+works.
 
 ## Next qualification gates
 
