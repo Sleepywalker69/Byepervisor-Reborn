@@ -114,3 +114,12 @@ seconds. The library load path is therefore the current observed stop,
 though the reason is not established. Package installation and PPR
 activity remain unproved. No automatic post-wake payload launch or
 installer retry was added.
+
+The observed kstuff-lite source routes `dynlib_load_prx` through
+`handle_fself_syscall()`, which clears its fSELF caches and arms debug
+register traps. Its `trap` counter marks a trap seen during that syscall;
+its `emulated` counter marks only an emulated result. The rise in traps
+with zero emulations during the AppInstUtil probes establishes
+interception, not responsibility for the unresolved library load. A
+fresh-boot control before loading kstuff is required to separate the
+downstream hook from the native loader's behavior.
