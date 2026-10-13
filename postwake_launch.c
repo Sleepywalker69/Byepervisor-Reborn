@@ -226,7 +226,6 @@ int postwake_launch_configured_elf(uint64_t expected_arm,
   }
   stage_logf("POSTWAKE_GATE id=%016" PRIx64 " title=%s elf=%s", expected_arm,
              title, name);
-  sleep(15);
   if (!receipt_matches(expected_arm, expected_base, expected_root)) {
     stage_logf("POSTWAKE_STOP id=%016" PRIx64 " reason=receipt_changed", expected_arm);
     return -1;

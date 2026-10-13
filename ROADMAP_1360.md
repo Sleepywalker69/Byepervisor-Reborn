@@ -201,5 +201,25 @@ Staged and final full-file readbacks matched the image hash above; prior
 images remain as `download0.dat.pre-postwake-20261013`. The 1,197-byte local
 deployment report has SHA-256
 `30af26db8a2fc2386e0ce0dcb220da5920fdb4bb5e1bd87ad6ae4e930e64b82c`.
-The new image has not yet been launched, so live post-wake Payload Manager
-readiness remains unproved.
+The new image had not been launched at this deployment gate.
+
+### First optional manager run and V2 retry candidate
+
+The first PPSA01651 Rest Mode run produced arm ID `6ace41b51d84a059`.
+Independent V3 status after wake matched that ID, text base and pmap root,
+reported AP-complete, zero hook state and restored gate/IST. Before manual
+intervention, Payload Manager port 8084 refused connections and the persistent
+stage log ended at pre-Rest `HOOK arming begins`. The user later launched
+Payload Manager manually; its HTTP 200 `/version` body `0.5.2` is separate
+evidence. The mounted title files and hashes matched the installed image.
+Thus the AP receipt passed and automatic manager launch did not reach
+readiness; the exact stopping instruction remains unidentified.
+
+The pre-Rest socket closes across S3. A failed post-wake file-log append could
+trigger a `printf` to that dead socket and SIGPIPE before the optional launch.
+This is a hypothesis. V2 ignores SIGPIPE before hook installation, waits 15
+seconds after verified cleanup before filesystem checks, and stamps a distinct
+pre-Rest build marker. The 209,576-byte V2 candidate ELF has SHA-256
+`fceb24e5f83f3d14358fe4741e5e65611ac68781ab4edb80ff8e839f33010afb`.
+SDK compilation, 13 native config cases and Y2JB's 48 parser/five transport
+cases passed offline. V2 has not been installed or run on the console.

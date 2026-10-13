@@ -1,0 +1,9 @@
+Byepervisor 13.60 post-wake retry candidate V2
+Build: PS5 SDK v0.44; make -B POSTWAKE_CONFIG=1
+ELF: byepervisor_reborn_postwake_sigpipe_v2_1360.elf
+Size: 209576 bytes
+SHA-256: fceb24e5f83f3d14358fe4741e5e65611ac68781ab4edb80ff8e839f33010afb
+Offline: SDK -Wall -Werror build and 13 config cases passed.
+Live: not tested on console as of this manifest.
+Change from V1: ignore SIGPIPE before hook installation; 15-second mount wait after verified AP cleanup; distinct session marker.
+Reason: V1 had matching AP completion and hook cleanup but no post-wake file log or manager readiness.

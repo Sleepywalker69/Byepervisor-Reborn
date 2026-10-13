@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <signal.h>
 #include <unistd.h>
 #include <sys/mman.h>
 #include <sys/time.h>
@@ -216,9 +217,13 @@ int main(void)
   // Do a quick firmware version detect, if we don't have offsets for it, goodbye!
   fw = kernel_get_fw_version();
   printf("[+] Detected firmware: %x.%x\n", (fw & 0xFF000000) >> 0x18, (fw & 0x00FF0000) >> 0x10);
-  if (stage_logf("SESSION start build=13.60-stage-log-v2 firmware=0x%x pid=%d",
+  if (stage_logf("SESSION start build=13.60-postwake-sigpipe-v2 firmware=0x%x pid=%d",
                  fw, getpid()) != 0) {
     notifyf("[ERROR] Byepervisor Reborn\nCannot write stage log; not arming");
+    return 1;
+  }
+  if (signal(SIGPIPE, SIG_IGN) == SIG_ERR) {
+    notifyf("[ERROR] Byepervisor Reborn\nCould not guard log socket; not arming");
     return 1;
   }
 
@@ -440,6 +445,9 @@ int main(void)
         return 1;
       }
 
+      /* The sender's socket closes across S3, and title/data mounts may lag
+         the AP receipt. Keep exploit cleanup complete before this wait. */
+      sleep(15);
       notify_set_file_logging(1);
       if (stage_logf("STAGE 0x%lx after hook cleanup", o) != 0)
         printf("[!] Could not append final stage to %s\n", STAGE_LOG_PATH);
