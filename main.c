@@ -3,6 +3,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <sys/time.h>
 
 #include <ps5/kernel.h>
 #include <sys/syscall.h>
@@ -12,6 +13,7 @@
 #include "util.h"
 #include "paging.h"
 #include "stage_status.h"
+#include "attempt_receipt.h"
 #include "stage_log.h"
 
 #include "break_hv_payload/break_hv.h"
@@ -204,6 +206,9 @@ int main(void)
   uint64_t pte;
   uint64_t o;
   uint64_t cave_state;
+  uint64_t arm_id;
+  uint64_t previous_arm;
+  uint64_t previous_complete;
 
   printf("[+] Byepervisor reborn v1\n");
 
@@ -366,6 +371,24 @@ int main(void)
     notifyf("Byepervisor Reborn\nCannot write pre-arm stage log");
     return 1;
   }
+  struct timeval arm_time;
+  if (gettimeofday(&arm_time, NULL) != 0 || arm_time.tv_sec <= 0 ||
+      arm_time.tv_usec < 0 || arm_time.tv_usec >= 1000000) {
+    notifyf("Byepervisor Reborn\nCannot obtain arm time; not arming");
+    return 1;
+  }
+  arm_id = ((uint64_t)arm_time.tv_sec << 32) |
+           ((uint64_t)arm_time.tv_usec << 12) |
+           ((uint64_t)getpid() & 0xfff);
+  if (!arm_id ||
+      read_u64(cave + CAVE_ARM_ID_OFF, &previous_arm) != 0 ||
+      read_u64(cave + CAVE_COMPLETE_ID_OFF, &previous_complete) != 0 ||
+      previous_arm != 0 || previous_complete != 0 ||
+      write_entry_checked(cave + CAVE_ARM_ID_OFF, arm_id) != 0 ||
+      write_entry_checked(cave + CAVE_COMPLETE_ID_OFF, 0) != 0) {
+    notifyf("Byepervisor Reborn\nCannot initialize attempt receipt; not arming");
+    return 1;
+  }
   notify_set_file_logging(0);
   int r = install_resume_hook(HOOK_CORE, cave, kernel_pm_cr3);
   if (r) {
@@ -375,6 +398,8 @@ int main(void)
   }
 
   printf("[+] Hook installed; automatic Rest Mode in 3 seconds\n");
+  printf("BPR_ARM_V1 id=%016lx\n", arm_id);
+  fflush(stdout);
   notifyf("Byepervisor Reborn\nArmed. Entering Rest Mode in 3 seconds.");
   sleep(3);
   sceSystemStateMgrEnterStandby();
@@ -406,6 +431,10 @@ int main(void)
       printf("[+] Uninstalling hook\n");
       if (uninstall_hook(HOOK_CORE, cave) != 0) {
         notifyf("Byepervisor Reborn\nHook cleanup failed; do not rerun");
+        return 1;
+      }
+      if (write_entry_checked(cave + CAVE_COMPLETE_ID_OFF, arm_id) != 0) {
+        notifyf("Byepervisor Reborn\nAttempt receipt write failed");
         return 1;
       }
 

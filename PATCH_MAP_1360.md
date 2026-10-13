@@ -1,5 +1,36 @@
 # 13.60 kernel patch-map working notes
 
+Milestone 4 scope update (13 October): full Kstuff is a feature reference,
+while kstuff-lite contains the available 13.60 loader/FSELF/NPDRM paths. The
+first downstream target should be a complete scoped capability with its
+consumer and failure behavior, not a permanent copy of one debugger trap byte.
+No candidate below has yet been applied as a functional kernel patch. The
+attempt-specific post-wake receipt is still awaiting its first controlled
+console run; downstream writes remain gated on it.
+
+### Complete kstuff-lite path to examine after receipt
+
+The local `1.11-opt` source is a substantial resident payload, not a small
+standalone patch. `ps5-kstuff-ldr/src/main.c` embeds `ps5-kstuff/payload.bin`
+and contains the image/mount loader. `ps5-kstuff/main.c` selects firmware
+`1360`, rejects a second resident instance through `kekcall`, installs its
+exception machinery, and applies firmware-specific ShellCore patches.
+`ps5-kstuff/uelf/main.c` dispatches scoped FSELF and FPKG traps;
+`ps5-kstuff/uelf/fpkg.c` selects the firmware-13 PPR profile, including 13.60.
+For the user's requested full implementation, this complete loader and its
+resident handlers are the relevant downstream unit. A single copied PPR or
+`mprotect` byte would not reproduce that behavior. Before a post-wake load,
+the chain must confirm this exact binary is not already resident and obtain a
+module-ready result beyond a completed ELF socket send. Actual fPKG or child
+process behavior remains unproved here.
+
+The bundled elfldr server's `accept` loop calls `on_connection` and then
+returns to `accept`; its `elfldr_spawn` returns a PID after arranging the new
+process. This source shape permits a separate status connection while the HV
+process is still running, but it does not establish that elfldr survives Rest
+Mode or that the guest payload reached its own ready state. Those are live
+checks for the controlled attempt.
+
 These observations use the verified local capture from console boot
 `1791893784.399222`: text base `0xffffffffd3b70000`, data base
 `0xffffffffd4830000`, text SHA-256

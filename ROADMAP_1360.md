@@ -92,6 +92,28 @@ post-wake completion signal before autoloader integration. The operational
 read/write gate is met on one post-AP boot. AP causality remains an open
 research question and must not be inferred from this gate.
 
+## Milestone 4 gate record, 13 October
+
+1. **Attempt receipt: offline audit passed; live gate pending.** The candidate
+   prints `BPR_ARM_V1` only after the resume hook installs and writes matching
+   completion only after AP-complete and successful hook cleanup. A separate
+   status reader checks stage, hook, gate, IST, ID, firmware, and boot. Ten C
+   state cases and 23 Y2JB parser cases passed. On an older AP-completed boot,
+   the read-only V2 reader returned `ok=0` because both attempt IDs were zero.
+   The new hook ELF has not run; no post-wake chain is enabled.
+2. **Controlled attempt: pending.** Record the fresh boot and arm ID before
+   Rest Mode, then require an independent post-wake `BPR_STATUS_V2` line with
+   the same boot and ID, AP-complete stage, zero hook state, and restored
+   gate/IST. Any failure stops later payloads and preserves the logs.
+3. **Y2JB: pending.** The user's latest instruction authorizes building for
+   both PPSA01651 and PPSA01652. No package is installed from the candidate.
+   Verify YouTube and elfldr survival before choosing a surviving post-wake
+   orchestrator; a completed socket send is not module completion.
+4. **Downstream capability: pending.** Compare full Kstuff's desired behavior
+   with kstuff-lite's 13.60 implementation. Choose one concrete consumer and
+   trace its scoped handler and kernel sites before a guarded live change.
+   Current byte matches in `PATCH_MAP_1360.md` are not functional proof.
+
 ## Fresh-boot pre-AP comparison (13 October)
 
 On a standalone Relapse and elfldr boot, a read-only preflight reported zero
