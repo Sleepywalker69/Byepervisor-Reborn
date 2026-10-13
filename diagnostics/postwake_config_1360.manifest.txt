@@ -1,0 +1,9 @@
+Byepervisor 13.60 post-wake config candidate
+Build: PS5 SDK v0.44; make -B POSTWAKE_CONFIG=1
+ELF: byepervisor_reborn_postwake_config_1360.elf
+Size: 209408 bytes
+SHA-256: 4736c131f13d6879eabdcde4ea2911678a4d1919e9a2e8e72c7a638d4ba484cd
+Offline: 13 config parser cases passed; SDK -Wall -Werror build passed.
+Live: not tested on console as of this manifest.
+Default: missing postwake.txt or manual sends no extra ELF.
+Configured: exactly one elf=<filename>.elf entry. pldmgr.elf is checked via /version after delivery.

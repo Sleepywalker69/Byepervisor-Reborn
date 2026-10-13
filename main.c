@@ -15,6 +15,7 @@
 #include "stage_status.h"
 #include "attempt_receipt.h"
 #include "stage_log.h"
+#include "postwake_launch.h"
 
 #include "break_hv_payload/break_hv.h"
 
@@ -443,6 +444,15 @@ int main(void)
       if (stage_logf("STAGE 0x%lx after hook cleanup", o) != 0)
         printf("[!] Could not append final stage to %s\n", STAGE_LOG_PATH);
       notifyf("Byepervisor Reborn\nAP stage complete; gate/IST restored. XOM untested.");
+
+#if POSTWAKE_CONFIG
+      /* The YouTube process closes during Rest Mode. This code runs in the
+         resumed hook ELF only after the original cleanup has completed. */
+      if (postwake_launch_configured_elf(arm_id, ktext(0), kernel_pm_cr3)) {
+        notifyf("Byepervisor Reborn\nPost-wake payload stopped; see stage log");
+        return 2;
+      }
+#endif
 
       // TODO: Patch kernel and all that fun stuff, we don't feel like doing this so someone else can do it :)
 

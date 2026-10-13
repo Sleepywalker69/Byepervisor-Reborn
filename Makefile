@@ -28,14 +28,15 @@ ELF := byepervisor_reborn.elf
 PAYLOAD_DIR := break_hv_payload
 PAYLOAD_HDR := $(PAYLOAD_DIR)/break_hv.h
 
-CFLAGS := -Wall -Werror -Wno-unused-function -g -I./include -lSceSystemService
+POSTWAKE_CONFIG ?= 0
+CFLAGS := -Wall -Werror -Wno-unused-function -g -I./include -DPOSTWAKE_CONFIG=$(POSTWAKE_CONFIG) -lSceSystemService
 
 all: $(ELF)
 
 $(PAYLOAD_HDR): $(PAYLOAD_DIR)/break_hv.c $(PAYLOAD_DIR)/entry.S $(PAYLOAD_DIR)/link.ld include/stage_status.h
 	sh $(PAYLOAD_DIR)/build.sh
 
-$(ELF): $(PAYLOAD_HDR) main.c kdlsym.c khook.c paging.c util.c stage_log.c $(wildcard include/*.h include/offsets/*.h)
+$(ELF): $(PAYLOAD_HDR) main.c kdlsym.c khook.c paging.c util.c stage_log.c postwake_launch.c postwake_config.c $(wildcard include/*.h include/offsets/*.h)
 	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 
 clean:

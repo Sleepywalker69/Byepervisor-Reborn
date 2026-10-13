@@ -96,3 +96,8 @@ restoration. The first post-AP one-byte write was an inert NOP-area test and
 does not satisfy those semantic checks for `mprotect`, fSELF, fPKG, or CFI.
 AP causality is still unproved; the user asked not to repeat the failed
 pre-HV read on this console merely to settle that question.
+
+The optional post-wake Payload Manager candidate changes no additional
+kernel text bytes. It is a receipt-gated userland ELF launch after the proven
+AP/hook-cleanup sequence. Its offline build is not a new kernel capability or
+a substitute for the downstream semantic patch gate above.

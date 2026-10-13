@@ -164,3 +164,30 @@ present entry for the calculated direct-map alias of the target text bytes
 and stopped before any content read. It made no mapping change and supplied
 no pre-AP text bytes. The alias route is unavailable as written on that boot;
 the causal comparison remains incomplete.
+
+## Optional post-wake ELF gate, 13 October
+
+The PPSA01651 V3 Y2JB attempt now has a verified matching pre-Rest arm record
+and independent post-wake AP-complete status, with zero hook state and restored
+gate/IST. The YouTube process did not produce a post-wake continuation, so
+post-wake orchestration must live in the resumed native process.
+
+`POSTWAKE_CONFIG=1` builds a candidate native coordinator. It runs only after
+the existing AP-complete branch has restored the hook and written the matching
+completion ID. It checks the live receipt again and requires the exact Y2JB
+pre-Rest arm file. Missing `postwake.txt` or `manual` sends no extra ELF.
+One `elf=<filename>.elf` entry selects one packaged ELF; malformed or multiline
+config stops. The current test image explicitly selects `pldmgr.elf`. That
+name receives an additional readiness check: port 8084 must be absent before
+launch and `/version` must return exactly `0.5.2` afterward. Other names can
+only be reported as sent, not confirmed running. There is no automatic
+multi-payload chain in this candidate.
+
+The SDK build and 13 native config cases passed offline. Candidate ELF:
+209,408 bytes, SHA-256
+`4736c131f13d6879eabdcde4ea2911678a4d1919e9a2e8e72c7a638d4ba484cd`.
+The Y2JB ZIP passed CRC, 48 receipt parser cases, five transport cases and
+embedded hashes; SHA-256
+`24ad2fe211985c7cdd169baf24c88c36a34b148ade9cdabb7d35615c12c25550`.
+These are offline checks only. A fresh boot, installed test image, one Rest
+Mode cycle, matching receipt, and live port 8084 response remain required.
