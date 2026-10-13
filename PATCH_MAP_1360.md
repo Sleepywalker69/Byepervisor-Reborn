@@ -307,3 +307,13 @@ a responsive home screen. A fourth candidate enumerates handles using
 `dynlib_get_list`, selects a segment by two matching preimage anchors,
 and then applies the full 34-site guard before writes. Its compiled table
 passes offline checks; the handle-list route remains untested on PS5.
+
+The fourth candidate did run once: remote module-list returned `-1` and
+the loader stopped before ShellCore writes. The console remained responsive.
+The captured 13.60 sysent table contains distinct text handlers for syscall
+entries 592 and 608, so missing entries do not explain the result. A
+read-only process VM-map query then found one executable ShellCore mapping
+large enough for the sites. A fifth candidate derives its base from that
+map and compares two anchors plus all 34 originals before kstuff's IDT and
+kernel-data changes. This route is offline-verified only; no ShellCore write
+or loaded-kstuff behavior is yet demonstrated.

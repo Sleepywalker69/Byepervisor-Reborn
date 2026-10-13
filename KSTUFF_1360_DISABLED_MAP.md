@@ -120,6 +120,16 @@ handle zero directly, while its own module-listing code uses handles from
 checks two live ShellCore byte anchors, then checks all 34 sites before
 patching. Its compiled tables pass offline verification; it has not run.
 
+The fourth candidate returned `-1` from the remote module-list call and
+stopped before ShellCore patching; the operator again reported a responsive
+home screen. The 13.60 captured sysent table has nonzero handlers for both
+module-list and module-info calls, but the remote failure's errno was not
+captured. A separate read-only `KERN_PROC_VMMAP` diagnostic found ShellCore's
+PID and a plausible executable mapping on that boot without remote dynlib
+calls. A fifth private candidate uses that map, checks two byte anchors and
+all 34 sites **before** installing kstuff's IDT/kernel-data hooks. It passes
+offline compiled-table verification and has not run on PS5.
+
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake

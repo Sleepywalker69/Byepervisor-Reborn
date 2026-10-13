@@ -771,6 +771,16 @@ path obtains handles first. A fourth private candidate uses that listing,
 requires two independent live byte anchors and all 34 original-byte checks,
 and has passed compiled-table checks offline. It has not run on the console.
 
+The fourth candidate ran once on a fresh post-HV boot. Its module-list
+syscall returned `-1`, and the loader stopped before ShellCore writes; the
+operator reported a responsive home screen. The saved 13.60 kernel capture
+has actual handlers at syscall entries 592 and 608, leaving the remote
+dynamic-library failure unresolved. A separate read-only VM-map diagnostic
+found a plausible large executable ShellCore segment. A fifth candidate
+uses that ordinary process-map route for the early two-anchor and 34-site
+byte gate, ahead of IDT/kernel-data installation. Its compiled table passes
+offline verification, but it has not run on the console.
+
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
 while IST3 and IST7 are zero in that capture. This is one non-atomic boot,
