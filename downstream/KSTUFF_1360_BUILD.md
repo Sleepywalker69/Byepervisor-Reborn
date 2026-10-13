@@ -1,5 +1,18 @@
 # 13.60 kstuff PPR candidate: offline build record
 
+**Current-status correction (13 October 2026):** this file is the historical
+offline receipt for the first opt-in builds. Later, a separate observation
+build executed and reached the 13.60 kernel-side PPR profile, fake-package
+verification and G6 traps, but the test fPKG did not demonstrably run and
+one synthetic key pair remained outstanding. Guarded V5/V6 builds then
+matched all 34 original ShellCore patch bytes and returned inner failure;
+V7 timed out before that checkpoint and the operator reported a kernel panic.
+V8 is offline only and live work is paused. The exact evidence ceilings and
+remaining gates are in [DOWNSTREAM_AUDIT_1360.md](../DOWNSTREAM_AUDIT_1360.md#v5v8-offline-reconciliation-and-remaining-functional-gates).
+Statements below that an artifact had not run refer to its build-time state,
+not the current project state. The opt-in patch itself is a source candidate,
+not demonstrated 13.60 fPKG support.
+
 Source base: `EchoStretch/kstuff-lite` commit
 `48cd2c4ce62aa9ca0c2cc014c1e512f276ae7c17`. The local source tree is
 a disposable checkout; the source change is reproduced by
