@@ -10,8 +10,17 @@ The `byepervisor_reborn_1360_autorest_unverified.elf` build incorporates
 [EchoStretch's auto-Rest-Mode PR #1](https://github.com/PS5Dev/Byepervisor-Reborn/pull/1):
 after the armed notification it waits three seconds and requests standby.
 It has passed only offline checks. The earlier freeze occurred before that
-point, so this change is not a crash fix. **Do not run the auto-Rest-Mode ELF
-until the earlier freeze has been investigated after console recovery.**
+point, so this change is not a crash fix. **Do not run that exact first
+auto-Rest-Mode ELF.**
+
+`byepervisor_reborn_1360_autorest_nohotlog_unverified.elf` is a separate
+diagnostic candidate. It keeps the existing hook, AP code, and automatic
+standby request but pauses file logging immediately before hook installation.
+It records one pre-arm checkpoint and resumes file logging only after verified
+hook cleanup. This removes the added `open`/`write`/`fsync`/`close` calls from
+the armed window; it does not prove that file logging caused the freeze or
+that this candidate will run safely. See
+[TEST_PLAN_1360_NOHOTLOG.md](TEST_PLAN_1360_NOHOTLOG.md) for its one-run boundary.
 
 **Note: This repo should be considered a base exploit for work to be built on top of. It is not useful to regular users in its current release state, this is intended for developers.**
 
@@ -38,17 +47,17 @@ restore path. These checks are host-tested; no AP-completion result has been
 observed on this PS5. An AP-completion notice does not prove persistent hypervisor control,
 kernel text access, or XOM defeat.
 
-This build leaves kernel text mappings untouched and does not read or write
-kernel text. The failed logged ELF used manual Rest Mode; the new untested ELF
-requests Rest Mode automatically after arming. The original attempted-test
-record is in [TEST_PLAN_1360.md](TEST_PLAN_1360.md). Both exact ELFs are in
-`dist/`, with their SHA-256 values in `dist/SHA256SUMS`.
+This fork's stage builds leave kernel text mappings untouched and do not read
+or write kernel text. The failed logged ELF used manual Rest Mode; the two
+auto-Rest-Mode ELFs request it after arming. The original attempted-test record
+is in [TEST_PLAN_1360.md](TEST_PLAN_1360.md). All exact ELFs are in `dist/`,
+with their SHA-256 values in `dist/SHA256SUMS`.
 
-Each notification and observed stage is appended and synced to
-`/data/ps5-s3-1360/byepervisor-reborn-1360.log`. A missing or unwritable log
-stops the ELF before the hook is armed. A shutdown before userland resumes may
-still leave only the pre-sleep entries; the AP code itself does not perform
-filesystem I/O.
+The original logged build appends each notification and observed stage to
+`/data/ps5-s3-1360/byepervisor-reborn-1360.log`. The no-hot-log candidate
+records pre-arm activity and successful post-cleanup results there, but does
+no file I/O while the hook is armed. A shutdown may leave only the pre-arm
+entry. The AP code itself does not perform filesystem I/O.
 
 ## Important Notes
 - You may need to go to Settings -> System -> Power Saving -> Features Available in Rest Mode
@@ -85,8 +94,8 @@ Some firmwares might require more extensive modifications if gadgets don't exist
 
 ## How to use
 1. Run kernel exploit chain and get to elfldr
-2. Do not send either 13.60 `dist/` ELF while the pre-Rest-Mode freeze is being
-   investigated. The new auto-Rest-Mode build has not been run on a PS5.
-3. Once a later build has a reviewed live test plan, follow that plan's exact
-   build hash and recovery steps. [TEST_PLAN_1360.md](TEST_PLAN_1360.md) records
-   the earlier manual attempt and is not a run instruction for the new ELF.
+2. Do not resend the failed logged ELF or the first auto-Rest-Mode ELF. The
+   no-hot-log ELF is a separate, unverified diagnostic candidate.
+3. For a supervised one-run test of the no-hot-log candidate, follow its exact
+   hash and stop conditions in [TEST_PLAN_1360_NOHOTLOG.md](TEST_PLAN_1360_NOHOTLOG.md).
+   The earlier [TEST_PLAN_1360.md](TEST_PLAN_1360.md) is historical.

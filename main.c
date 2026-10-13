@@ -362,6 +362,11 @@ int main(void)
     notifyf("Byepervisor Reborn\nCannot reset stage state");
     return 1;
   }
+  if (stage_logf("HOOK arming begins; file logging paused until cleanup") != 0) {
+    notifyf("Byepervisor Reborn\nCannot write pre-arm stage log");
+    return 1;
+  }
+  notify_set_file_logging(0);
   int r = install_resume_hook(HOOK_CORE, cave, kernel_pm_cr3);
   if (r) {
     printf("[!] Hook installation returned %d\n", r);
@@ -370,8 +375,7 @@ int main(void)
   }
 
   printf("[+] Hook installed; automatic Rest Mode in 3 seconds\n");
-  notifyf("Byepervisor Reborn\nArmed. Automatic Rest Mode pending.");
-  notifyf("Byepervisor Reborn\nEntering Rest Mode in 3 seconds");
+  notifyf("Byepervisor Reborn\nArmed. Entering Rest Mode in 3 seconds.");
   sleep(3);
   sceSystemStateMgrEnterStandby();
 
@@ -390,8 +394,6 @@ int main(void)
     }
     if (o != last_stage) {
       printf("[+] Stage changed: 0x%lx\n", o);
-      if (stage_logf("STAGE 0x%lx", o) != 0)
-        notifyf("Byepervisor Reborn\nStage log write failed");
       last_stage = o;
       if (o == STAGE_HOOK_FIRED)
         notifyf("Byepervisor Reborn\nResume hook fired; waiting for AP");
@@ -407,6 +409,9 @@ int main(void)
         return 1;
       }
 
+      notify_set_file_logging(1);
+      if (stage_logf("STAGE 0x%lx after hook cleanup", o) != 0)
+        printf("[!] Could not append final stage to %s\n", STAGE_LOG_PATH);
       notifyf("Byepervisor Reborn\nAP stage complete; gate/IST restored. XOM untested.");
 
       // TODO: Patch kernel and all that fun stuff, we don't feel like doing this so someone else can do it :)
@@ -416,8 +421,12 @@ int main(void)
 
     if (o == STAGE_AP_INVALID) {
       notifyf("Byepervisor Reborn\nAP rejected VMCB layout; checking cleanup");
-      if (uninstall_hook(HOOK_CORE, cave) != 0)
+      if (uninstall_hook(HOOK_CORE, cave) != 0) {
         notifyf("Byepervisor Reborn\nHook cleanup failed; do not rerun");
+        return 1;
+      }
+      notify_set_file_logging(1);
+      notifyf("Byepervisor Reborn\nAP rejected VMCB layout; hook restored");
       return 1;
     }
 
@@ -429,8 +438,12 @@ int main(void)
     if (o == STAGE_HOOK_FIRED || o == STAGE_AP_ENTERED) {
       if (++pending_after_hook >= 12) {
         notifyf("Byepervisor Reborn\nAP completion timed out; checking cleanup");
-        if (uninstall_hook(HOOK_CORE, cave) != 0)
+        if (uninstall_hook(HOOK_CORE, cave) != 0) {
           notifyf("Byepervisor Reborn\nHook cleanup failed; do not rerun");
+          return 1;
+        }
+        notify_set_file_logging(1);
+        notifyf("Byepervisor Reborn\nAP completion timed out; hook restored");
         return 1;
       }
     }

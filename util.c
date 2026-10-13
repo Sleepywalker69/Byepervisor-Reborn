@@ -10,6 +10,13 @@
 #include "util.h"
 #include "stage_log.h"
 
+static int notify_file_logging = 1;
+
+void notify_set_file_logging(int enabled)
+{
+  notify_file_logging = enabled != 0;
+}
+
 int kread(uint64_t kaddr, void *dst, size_t len)
 {
   return kernel_copyout(kaddr, dst, len);
@@ -88,7 +95,7 @@ void notifyf(const char *fmt, ...)
   va_start(ap, fmt);
   vsnprintf(req.message, sizeof req.message, fmt, ap);
   va_end(ap);
-  if (stage_logf("NOTIFY %s", req.message) != 0)
+  if (notify_file_logging && stage_logf("NOTIFY %s", req.message) != 0)
     printf("[!] Could not append notification to %s\n", STAGE_LOG_PATH);
   sceKernelSendNotificationRequest(0, &req, sizeof req, 0);
 }

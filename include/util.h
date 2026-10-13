@@ -27,6 +27,7 @@ void pin_to_first_available_core();
 int get_cpu_core();
 
 void notifyf(const char *fmt, ...);
+void notify_set_file_logging(int enabled);
 void klog(const char *fmt, ...);
 void kHexDump(uint64_t kaddr, uint64_t len);
 
