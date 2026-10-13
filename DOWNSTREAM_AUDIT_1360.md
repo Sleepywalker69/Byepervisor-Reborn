@@ -203,3 +203,24 @@ version. All three returned `status=0x20` and zero bytes; no ELF signature
 was obtained. The probe source and output remain private. The tested
 historical addresses do not supply a current 13.60 image, so further
 address guessing is paused pending a decoded status or verified map.
+
+## Live 13.60 kernel-side PPR profile gate
+
+The observed opt-in kstuff build exposes `control_ppr_plaintext_request`
+through kekcall number 7. Within a per-thread PPR mount scope, `CHECK`
+returns `EINVAL` before staging ownership when the firmware profile is
+disabled, and `EPERM` for absent staging ownership after an active profile
+passes. A one-shot probe entered version-8 scope kind 3, called `CHECK`
+without writing staging data, then left the scope. It recorded
+`kstuff_check=0 scope_enter=0 check=-1 scope_leave=0`. This is the
+profile-enabled result on the live 13.60 boot and a successful scope exit.
+
+The tested 110,728-byte ELF SHA-256 is
+`c4f6c3b07d6f2917f9939f8174e9fbbde33bf94c3295a552d3ba628f1cefe0e0`;
+its source is `diagnostics/ppr_profile_gate_probe_1360.c`. The private
+128-byte host log SHA-256 is
+`87d2952408465d667628fc5c6224acd43c9a8932f29b3744359aca936ff5257c`.
+A subsequent independent kstuff reader still reported zero PPR G6 traps,
+profile matches, applications, fPKG verify/clear events and outstanding
+plaintext key pairs. The result proves the narrow kernel-side 13.60 profile
+gate is reachable; it does not prove staging, A53 PPR changes, or fPKG launch.

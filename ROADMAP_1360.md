@@ -536,3 +536,15 @@ a fresh boot, one Rest Mode/wake cycle, a new marker with matching arm/base/
 root, and a separate V3 status read matching the marker's boot time and
 showing AP complete, hook zero, and restored gate/IST. Only then count a
 configured post-wake ELF as executed rather than merely transmitted.
+
+### Narrow downstream kernel change proved on one boot
+
+The opt-in 13.60 kstuff build's PPR profile gate was exercised through its
+control kekcall. A one-shot probe entered a PPR mount scope, called `CHECK`
+without staging data, and left the scope. `CHECK` returned `EPERM`, which
+the reviewed source reaches after a non-null firmware profile; the
+disabled-profile branch would return `EINVAL`. Scope entry and exit both
+returned success. A separate reader still showed zero PPR G6, fPKG and
+plaintext key-pair activity. This validates the narrow kernel-side gate,
+not the A53 selector or a playable fPKG. The A53 image/profile and a
+functional package-read/launch check remain required.
