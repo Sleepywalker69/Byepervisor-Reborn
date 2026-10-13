@@ -83,7 +83,35 @@ The exact V3 hook ELF is also retained locally as
 remains as `diagnostics/byepervisor_reborn_attempt_receipt_1360.elf` with its
 original hash. Neither versioned binary is staged for Git.
 The 10 C state cases, four hook-contract cases, 23 V2 parser cases, and 25 V3
-parser cases passed offline. Both new ELFs remain untested on the console.
+parser cases passed offline. At this point in the record, both new ELFs
+remained untested on the console.
 `tests/test_run_attempt_receipt.py` also passed a local forced-socket-reset
 case: it verified that the arm ID, text base, and pmap root are saved before
 the reset and that the final reason is recorded.
+
+## V3 controlled live receipt, 13 October
+
+On fresh standalone Relapse/elfldr boot `1791898356.667496`, the exact V3
+hook ELF (SHA-256 `4e303c1a5d409013637bded728602103ab39f4948d3f5888d7e9a5d98c0ab810`)
+printed `BPR_ARM_V2 id=6ace3357104ff054 base=ffffffff998a0000
+root=000000001d6f4000` after the hook-installed line and before automatic Rest
+Mode. The 505-byte local host log SHA-256 is
+`ce996af1df551490ff6df861f352c7d1d94c680e1c9ea3df5ab1187e8f5e83cd`.
+The runner's 433-byte JSON receipt SHA-256 is
+`be60f8afcc3c7896f41532dde4883a17b29c31f2a34cc96c797eb96458d6853d`;
+it records the ELF hash, arm values and timestamp, and the S3 socket reset
+(`socket_error:10054`).
+
+After the user's wake, the independent 111,024-byte V3 status ELF returned
+`ok=1`, firmware `13600007`, boot `1791898416.675424`, the same base/root,
+AP-complete stage, zero hook state, the same nonzero arm/completion ID, and
+`gate=1 ist=1`. The 203-byte status log SHA-256 is
+`6c877ddc29c222394dc0ee7b021cc79dfd5618327e5e0a75b5b026a815fa0779`.
+Y2JB's V3 parser accepted the saved arm log, JSON receipt, and independent
+status log. The user confirmed the home screen remained responsive. This
+passes the one-attempt receipt gate. The changed `kern.boottime` is consistent
+with the earlier Rest Mode observation and is informational only.
+
+No post-wake Y2JB chain, YouTube survival check, or downstream kstuff-lite
+payload ran in this test. The V3 receipt is necessary for those next gates;
+it does not by itself establish that any of them work.

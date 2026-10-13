@@ -94,7 +94,7 @@ research question and must not be inferred from this gate.
 
 ## Milestone 4 gate record, 13 October
 
-1. **Attempt receipt: offline audit passed; live gate pending.** The candidate
+1. **Attempt receipt: V3 live gate passed on one boot.** The candidate
    prints `BPR_ARM_V1` only after the resume hook installs and writes matching
    completion only after AP-complete and successful hook cleanup. A separate
    status reader checks stage, hook, gate, IST, ID, firmware, and boot. Ten C
@@ -105,16 +105,26 @@ research question and must not be inferred from this gate.
    A subsequent controlled V2 run did arm and complete AP/cleanup, but the
    strict `kern.boottime` equality failed because that value moved by
    31.546393 seconds across Rest Mode. The chain stopped. V3 now compares
-   the attempt ID plus kernel text base and pmap root; it has passed offline
-   parser tests but needs a fresh live run. The original host socket reset;
-   the independent post-wake status socket worked.
-2. **Controlled attempt: pending.** Record the fresh boot and arm ID before
-   Rest Mode, then require an independent post-wake `BPR_STATUS_V2` line with
-   the same boot and ID, AP-complete stage, zero hook state, and restored
-   gate/IST. Any failure stops later payloads and preserves the logs.
+   the attempt ID plus kernel text base and pmap root. On fresh boot
+   `1791898356.667496`, the V3 arm record and independent post-wake status
+   matched all three, reported AP-complete, zero hook, restored gate/IST, and
+   firmware 13.60. The Y2JB parser accepted the saved records. The user
+   reported a responsive home screen. This is one successful receipt check,
+   not proof that YouTube survives Rest Mode or that a downstream payload ran.
+2. **Controlled attempt: achieved once for V3.** The exact live arm ID was
+   `6ace3357104ff054`, text base `ffffffff998a0000`, and pmap root
+   `000000001d6f4000`. The independent `BPR_STATUS_V3` reported matching
+   values, AP-complete stage, zero hook state, restored gate/IST, and matching
+   completion ID. `kern.boottime` shifted to `1791898416.675424` and is kept
+   as diagnostic information, not an equality gate. The original host socket
+   reset across S3; a separate post-wake elfldr connection worked.
 3. **Y2JB: pending.** The user's latest instruction authorizes building for
-   both PPSA01651 and PPSA01652. No package is installed from the candidate.
-   Verify YouTube and elfldr survival before choosing a surviving post-wake
+   both PPSA01651 and PPSA01652. The Y2JB branch now has a receipt-only test
+   path: after Relapse handoff it sends the exact tested V3 hook ELF, stores
+   the arm values in a console file, and queries the independent status after
+   wake. Its offline ZIP passes archive and embedded-ELF hash checks; no
+   `download0.dat` is installed yet and no later payload is enabled. Verify
+   YouTube and elfldr survival before choosing a surviving post-wake
    orchestrator; a completed socket send is not module completion.
 4. **Downstream capability: pending.** Compare full Kstuff's desired behavior
    with kstuff-lite's 13.60 implementation. Choose one concrete consumer and
