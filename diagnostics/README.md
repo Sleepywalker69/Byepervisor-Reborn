@@ -149,6 +149,16 @@ reported the console responsive afterward. These raw memory files are not
 reconstructed ELFs; the data capture is live and non-atomic, and its endpoint
 is the first unmapped page rather than a verified ELF section boundary.
 
+For local IDA analysis, `make_analysis_elf_1360.py CAPTURE_DIR OUTPUT.elf`
+checks the verified capture receipt and each raw file's length/SHA-256, then
+wraps the two ranges in a synthetic ELF64 with page-aligned `.text` and
+`.data` load segments at their captured virtual addresses. Keep the generated
+ELF and IDA database outside Git. This container has no original kernel ELF
+headers, symbols, relocations, or entry point; the captured mapped-data range
+is live memory, not a proven original `.data` section. The verified local run
+produced an ELF whose two segment hashes match `kernel-text.bin` and
+`kernel-data.bin` exactly, and `readelf` accepted its headers.
+
 ## Reversible one-byte text-write check
 
 `text_byte_write_probe_1360.c` defaults unarmed. The checked-in boot-specific
