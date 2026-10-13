@@ -240,3 +240,23 @@ The safer next live comparison would measure the pinned receipt before any
 manager autoload and again afterward, with a fresh boot. The host-only watcher
 for this is offline-tested but has not run live. The user selected `manual`
 post-wake mode for the replacement image after the third-boot freeze.
+
+## Downstream PPR decision after the first package test
+
+The source's exact-13.60 kernel-side PPR opt-in remains an observation
+candidate, not a patch-ready fPKG path. The first private fake `app.pkg`
+registered and received native installer status `playable`, but a separate
+launch request returned `0x80f00800`; no test-app process or marker appeared.
+The same launcher ABI successfully started an existing homebrew folder app
+and produced a new `eboot.bin` process. Kstuff's observed PPR and fPKG
+counters stayed zero. This isolates the failed title from a general launcher
+API failure, but it does not identify whether package structure, mounting,
+or fake-package authorization rejected it.
+
+The public A53 PPR patcher recognizes exact layouts only through 11.40.
+Its status action identified live retail `releases/13.60` and stopped at
+the missing profile. Diagnostic A53 read requests at two older physical
+addresses and one EL3 virtual address each returned status `0x20` and zero
+bytes; the status meaning is unresolved. There is no verified 13.60 A53
+preimage, replacement, or readback target to place in this patch map. Do
+not infer a safe A53 code change from the matching kernel call offsets.
