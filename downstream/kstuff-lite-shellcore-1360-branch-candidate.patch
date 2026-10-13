@@ -1,0 +1,12 @@
+diff --git a/ps5-kstuff/shellcore_patches/13_60.h b/ps5-kstuff/shellcore_patches/13_60.h
+--- a/ps5-kstuff/shellcore_patches/13_60.h
++++ b/ps5-kstuff/shellcore_patches/13_60.h
+@@ -35,7 +35,7 @@ static struct shellcore_patch shellcore_patches_1360_retail[] = {
+     {0x36AA1C, "\xeb", 1}, // PS4 PKG Installer Patch 1
+     {0x36AAF0, "\xeb", 1}, // PS5 PKG Installer Patch 1
+     {0x36AD11, "\x90\xe9", 2}, // PS4 PKG Installer Patch 2
+-    {0x36AE22, "\xeb", 1}, // PS5 PKG Installer Patch 2
++    {0x36AE22, "\x90\xe9", 2}, // PS5 PKG Installer Patch 2: preserve rel32 target
+     {0x36B2FA, "\x90\xe9", 2}, // PS4 PKG Installer Patch 3
+     {0x36B38D, "\x90\xe9", 2}, // PS5 PKG Installer Patch 3
+     {0x7D67D8, "\xeb", 1}, // PS4 PKG Installer Patch 4

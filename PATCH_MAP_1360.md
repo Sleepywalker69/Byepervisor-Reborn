@@ -1,5 +1,14 @@
 # 13.60 kernel patch-map working notes
 
+The complete published kstuff-lite 13.60 offset-table byte inventory and
+disabled-path audit are now in [KSTUFF_1360_DISABLED_MAP.md](KSTUFF_1360_DISABLED_MAP.md).
+Its 78 entries all resolve inside the verified private capture or to the
+`p_sysent` structure field. Eleven mailbox return sites resolve back to the
+same mailbox function. This expands address coverage, but does not validate
+every ABI or runtime handler. A separate on-disk 13.60 ShellCore comparison
+found a one-byte near-branch replacement that changes its target; its
+source-only correction candidate has not been deployed.
+
 Milestone 4 scope update (13 October): full Kstuff is a feature reference,
 while kstuff-lite contains the available 13.60 loader/FSELF/NPDRM paths. The
 first downstream target should be a complete scoped capability with its

@@ -675,3 +675,13 @@ isolate marker execution from automatic post-wake orchestration. The private
 control script has five passing offline failure-path tests; it has not run
 on PS5. No inference about functional kstuff, fPKG, or Linux support follows
 from this recovery check.
+
+Offline work in parallel mapped all 78 entries of the published 13.60
+kstuff-lite kernel offset table to the saved capture or its one structure
+field, and captured the retail on-disk ShellCore ELF read-only. All 34
+retail ShellCore patch sites resolve to executable file bytes. One published
+near-branch patch changes its target when decoded, so the full table is
+not ready to apply unchanged. The [kstuff audit](KSTUFF_1360_DISABLED_MAP.md)
+records the exact finding, source-only candidate fix, firmware gates, and
+unverified A53/loaded-module boundaries. These offline checks did not
+launch a payload or change the console.
