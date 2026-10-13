@@ -29,6 +29,7 @@
 #define HV_LOADER_PA_PRO          0x8e0800000
 
 uint64_t g_hv_base_pa;
+int sceSystemStateMgrEnterStandby(void);
 
 static int read_u64(uint64_t addr, uint64_t *out);
 static int write_u64(uint64_t addr, uint64_t value);
@@ -368,8 +369,11 @@ int main(void)
     return r;
   }
 
-  printf("[+] Hook installed, enter sleep and resume!\n");
-  notifyf("Byepervisor Reborn\nArmed. Enter Rest Mode manually, then wake.");
+  printf("[+] Hook installed; automatic Rest Mode in 3 seconds\n");
+  notifyf("Byepervisor Reborn\nArmed. Automatic Rest Mode pending.");
+  notifyf("Byepervisor Reborn\nEntering Rest Mode in 3 seconds");
+  sleep(3);
+  sceSystemStateMgrEnterStandby();
 
   // Poll for resume and hook trigger
   uint64_t last_stage = 0;

@@ -4,6 +4,13 @@ regular PS5 after the loader printed `Hook installed`, before the `Armed`
 notification appeared. Do not relaunch this exact build. Its console log has
 not yet been recovered, and the stopping instruction is unknown.
 
+The `byepervisor_reborn_1360_autorest_unverified.elf` build incorporates
+[EchoStretch's auto-Rest-Mode PR #1](https://github.com/PS5Dev/Byepervisor-Reborn/pull/1):
+after the armed notification it waits three seconds and requests standby.
+It has passed only offline checks. The earlier freeze occurred before that
+point, so this change is not a crash fix. **Do not run the auto-Rest-Mode ELF
+until the earlier freeze has been investigated after console recovery.**
+
 **Note: This repo should be considered a base exploit for work to be built on top of. It is not useful to regular users in its current release state, this is intended for developers.**
 
 ## Summary
@@ -11,8 +18,8 @@ PS5 hypervisor exploit for 6.xx - 13.60 firmware. Bug details can be found [here
 
 Very similarly to (one version of) [byepervisor of old](https://github.com/PS5Dev/Byepervisor), this exploits the rest mode path too :)
 
-Upstream lists the following firmware targets. This fork's exact ELF has only
-been built and host-tested; its 13.60 console behavior remains unverified:
+Upstream lists the following firmware targets. The logged fork ELF froze a
+13.60 console before Rest Mode; the auto-Rest-Mode ELF has only offline checks:
 
 - 13.60
 - 13.20
@@ -25,14 +32,15 @@ However this bug should technically be exploitable as low as 6.xx. With modifica
 This fork records separate resume-hook, AP-entry, AP-validation-failure, and
 AP-completion states. It reports completion only after checking all 16 VMCB
 records and reading back the intended control changes. It also checks the hook
-restore path. These checks are host-tested; this exact ELF has not yet been run
-on a PS5. An AP-completion notice does not prove persistent hypervisor control,
+restore path. These checks are host-tested; no AP-completion result has been
+observed on this PS5. An AP-completion notice does not prove persistent hypervisor control,
 kernel text access, or XOM defeat.
 
 This build leaves kernel text mappings untouched and does not read or write
-kernel text. Rest Mode is entered manually. The test sequence and stop
-conditions are in [TEST_PLAN_1360.md](TEST_PLAN_1360.md). The exact built ELF
-is in `dist/`, with its SHA-256 in `dist/SHA256SUMS`.
+kernel text. The failed logged ELF used manual Rest Mode; the new untested ELF
+requests Rest Mode automatically after arming. The original attempted-test
+record is in [TEST_PLAN_1360.md](TEST_PLAN_1360.md). Both exact ELFs are in
+`dist/`, with their SHA-256 values in `dist/SHA256SUMS`.
 
 Each notification and observed stage is appended and synced to
 `/data/ps5-s3-1360/byepervisor-reborn-1360.log`. A missing or unwritable log
@@ -75,7 +83,8 @@ Some firmwares might require more extensive modifications if gadgets don't exist
 
 ## How to use
 1. Run kernel exploit chain and get to elfldr
-2. Send the exact `dist/byepervisor_reborn_1360_stage_logged.elf` build through elfldr.
-3. Wait for the `Armed` notification, enter Rest Mode manually, wait for steady
-   amber, and wake the console once. Observe the stage and cleanup notices.
-   Full steps and stop conditions: [TEST_PLAN_1360.md](TEST_PLAN_1360.md).
+2. Do not send either 13.60 `dist/` ELF while the pre-Rest-Mode freeze is being
+   investigated. The new auto-Rest-Mode build has not been run on a PS5.
+3. Once a later build has a reviewed live test plan, follow that plan's exact
+   build hash and recovery steps. [TEST_PLAN_1360.md](TEST_PLAN_1360.md) records
+   the earlier manual attempt and is not a run instruction for the new ELF.
