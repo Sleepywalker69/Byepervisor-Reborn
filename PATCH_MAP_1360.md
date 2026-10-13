@@ -88,6 +88,64 @@ The source's `fpkg.c` selects an explicit firmware-13 profile and uses these
 addresses in a coordinated PPR key and image-verification path. A candidate
 kernel patch needs the whole call and failure flow, not just one listed byte.
 
+## IDA trace: `mprotect_fix_start` is a shared-path condition
+
+Offline analysis of the private 13.60 IDB from boot `1791893784.399222`
+places text `+0x2cbfed` at live capture address `0xffffffffd3e3bfed`
+inside `mprotect_path_1360_candidate`, which starts at text `+0x2cbdb0`
+(`0xffffffffd3e3bdb0`, 0x13fa bytes). The six original bytes are
+`0f 85 c0 10 00 00`, a `jnz 0xffffffffd3e3d0b3`. The preceding sequence
+loads protection-related fields from `[r12+0x140]`, `[r12+0x66]`, and
+`[r12+0x128]`, computes a mask in `esi`, sets `r15d=2`, then executes
+`test dx,si`. The target `0xffffffffd3e3d0b3` is a shared cleanup/return
+region with 15 incoming code references in this function. The fall-through
+continues to inspect `[r12+0x50]` and `[rdi+0xa2]`. These are byte and
+control-flow observations; the struct fields are not yet typed.
+
+IDA shows at least seven distinct caller functions. One caller at
+`0xffffffffd427e409` invokes this routine from a 120-byte wrapper starting
+at `0xffffffffd427e3b0`; it rounds a range to 0x4000-byte pages, transforms
+protection bits, and maps return codes 0 through 6 through a table. Another
+caller at `0xffffffffd469bfff` tests the routine's return value before
+continuing. Thus replacing the six-byte conditional branch globally would
+change a shared protection path, not only kstuff's own `mprotect20()` call.
+The public kstuff-lite source instead traps at this address and advances RIP
+by six only for its instrumented syscall flow (`uelf/syscall_fixes.c` and
+`prosper0gdb/r0gdb.c`). That is the scoped behavior to preserve if this
+capability is pursued. No replacement bytes have been chosen or written;
+the consumer-specific preconditions and recovery behavior still need a
+guarded design and test.
+
+## IDA trace: `aslr_fix_start` redirects to an existing branch
+
+For the same captured text base, `aslr_fix_start` (`text+0x38fa98`) is
+`0xffffffffd3effa98`, and the kstuff-lite table defines `aslr_fix_end`
+as 14 bytes earlier, `0xffffffffd3effa8a`. IDA had decoded this code but
+left its containing function undefined. A bounded prologue/next-function
+scan established the 0x1174-byte function from `0xffffffffd3eff3a0` to
+`0xffffffffd3f00514`; it was defined in the private IDB as provisional
+`exec_self_imgact_1360_candidate`. The function references the
+`_exec_self_imgact` string and is reached through small mode-setting jump
+wrappers at `0xffffffffd3eff390` and `0xffffffffd3f00670`. This supports
+an image-activation context, but does not yet establish the structure type
+or full side effects. The exact captured bytes at the
+redirect target are `48 8b 45 a0 48 c7 40 30 00 00 40 00 eb 24`:
+`mov rax,[rbp-0x60]`, `mov qword ptr [rax+0x30],0x400000`, then a short
+jump to `0xffffffffd3effabc`. The ordinary block at `start` begins
+`48 8b 3b 44 0f b6 7d a8` and calls two other routines before joining
+at `0xffffffffd3effabc`. Nearby conditional branches at
+`0xffffffffd3effa64` and `0xffffffffd3effa88` already target the redirect
+block. This explains the unusual negative `aslr_fix_end` delta: kstuff's
+scoped trap invokes its `fix_app_wire_flag()` check and then selects an
+existing alternate block. The source describes that check as restricted
+to the current process and `/app0/eboot.bin`; the captured bytes alone
+do not type `[rbp-0x60]` or prove the app-specific side effect. The private
+IDB was saved after this definition; its pre-edit copy is
+`kernel-analysis-1360.pre-aslr-define.i64`, whose SHA-256 matched the
+original pre-edit IDB at
+`4c1c929d0194ac8bd87a17ba70dd8eb8c1379d40bd67fd250092ff7aafc36bc7`.
+No patch or live test was made from this trace.
+
 ## Gate before a downstream patch
 
 For each proposed behavior change, identify the owning function and callers

@@ -338,3 +338,54 @@ both before and after the read, then takes a late receipt after `done=total`.
 It has not run on the PS5. Its purpose is to distinguish a pre-autoload
 cleanup state from a post-autoload state; it does not assign causality to an
 individual payload.
+
+### Manual post-wake package installed
+
+The user selected a no-launch post-wake default after the freeze. Y2JB's
+`postwake.txt` now contains only `manual`, which the existing native parser
+maps to no ELF launch; the resumed Byepervisor code is unchanged. GitHub
+Actions built the 336,789,504-byte UFS2 image at Y2JB commit `d58a027`.
+On 13 October, both YouTube titles' `download0.dat` files were replaced via
+FTP 2121 with staged upload and full hash readback. Both installed images
+matched SHA-256
+`ff1ec8eea341fc282416ba07047e51a6d0e074019c8ef10bf6b4ccea777725c0`;
+each preceding image remains as `download0.dat.pre-manual-20261013`.
+The private deployment receipt is
+`PPSA0165x-postwake-manual-image/deployment.json`, SHA-256
+`e3afbea570a3a752ee2b7fa0d2f2a5f3582db52ca4ec2229a551e8d62203a2c1`.
+This is an installed-byte result. A fresh manual-mode Rest Mode run and
+independent receipt check remain unperformed. The six-payload automatic chain
+is no longer the configured default.
+
+### Downstream IDA slice after manual image installation
+
+The existing 13.60 IDB was opened without re-running autoanalysis. The
+`mprotect_fix_start` offset resolves to a six-byte `jnz` in the 0x13fa-byte
+`mprotect_path_1360_candidate` function. Bounded disassembly confirms the
+branch follows `test dx,si` and targets a shared cleanup/return area; the
+function has at least seven distinct caller functions, including a small
+page-rounded protection wrapper. The kstuff-lite source trap skips this
+branch only for its instrumented flow. A global static branch patch would
+change more callers, so no replacement bytes or live patch are proposed
+from this finding alone. Exact addresses, bytes and limits are recorded
+in `PATCH_MAP_1360.md`.
+
+After the user rebooted, a read-only FTP fetch recovered the first
+manual-mode session. The PPSA01651 Y2JB arm ID and the latest stage-log
+`POSTWAKE_MANUAL` ID both equal `6ace4bc8e2029059`; the session recorded
+AP completion and contains no Payload Manager readiness marker. The user
+reported a responsive console. This validates a live manual branch after
+wake, while an independent gate/IST status after wake remains unmeasured.
+The private copies and their hashes are recorded in the Y2JB
+`POSTWAKE_GATE_1360.md`.
+
+IDA also resolved the kstuff-lite `aslr_fix_end = aslr_fix_start-0xe`
+target: it is an existing alternate block that writes `0x400000` to a
+field at `+0x30`, then rejoins the surrounding flow. The previously
+undefined code was bounded from `0xffffffffd3eff3a0` to
+`0xffffffffd3f00514` and provisionally named
+`exec_self_imgact_1360_candidate` in the private IDB. Its
+`_exec_self_imgact` string and two mode-setting jump wrappers support
+the image-activation context; the structure field and app-specific effect
+still need proof. This is documented in `PATCH_MAP_1360.md`; no patch
+was made.
