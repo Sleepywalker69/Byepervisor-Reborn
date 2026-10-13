@@ -324,4 +324,6 @@ behavior is demonstrated.
 The sixth live candidate repeated the same passing preimage result and
 nonzero inner return; its added inner stdout failure line was absent. The
 seventh candidate moves the diagnostic to the outer loader's return-code
-line and is offline-verified only.
+line and passed offline verification. On its one live run, the host stream
+timed out before any preimage or numeric return-code output, and the operator
+reported a kernel panic. No patch-site write is proven from that run.

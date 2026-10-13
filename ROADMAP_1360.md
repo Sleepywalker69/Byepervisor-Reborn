@@ -795,6 +795,15 @@ seventh candidate encodes the existing failure reason in that return value
 and prints it from the outer loader. Its 34 compiled patch/preimage rows pass
 offline verification. This candidate has not run on the console.
 
+The seventh candidate was sent once on a fresh post-HV boot after a passing
+AP receipt. The host received only the outer loader's initial line, then
+timed out; the operator reported a kernel panic. No preimage result or
+numeric failure code was observed. Its full ELF kept the same segment layout
+and entry point as the sixth candidate, but its embedded payload location
+shifted by `0x6d` in the linked image and its compiled inner bytes changed.
+These static differences do not establish the panic's cause. Further console
+testing is on hold pending offline early-path analysis.
+
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
 while IST3 and IST7 are zero in that capture. This is one non-atomic boot,

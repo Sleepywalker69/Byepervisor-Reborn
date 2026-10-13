@@ -143,19 +143,23 @@ and the outer loader's failure line. The added inner stdout line did not
 arrive; the console remained responsive. The exact patch failure is still
 unidentified. A seventh candidate returns a numeric reason code to the
 outer loader, which already reaches the host stream; its compiled tables
-pass offline verification and it has not run on PS5.
+passed offline verification. Its one live run received only the outer
+loader's initial line before the host connection timed out, and the operator
+reported a kernel panic. No 34-site gate or numeric failure code was
+observed on that run. The stopping point and cause are unresolved; do not
+rerun that binary as a presumed diagnostic fix.
 
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake
    failure is isolated. Run a fresh manual-mode wake only with an operator
    present and require an attempt-specific AP receipt.
-2. Recover the ShellCore patch failure reason using the bounded outer-loader
-   return code. The 34-site preimage check passed
-   before IDT/kernel-data setup; the later failure may have followed partial
-   setup. Do not repeat it on the same boot. Require a loader success log and
-   functional readback before calling kstuff loaded; socket transmission
-   alone is insufficient.
+2. Investigate the seventh candidate's early kernel panic offline before
+   another live loader attempt. Earlier candidates passed the 34-site
+   preimage gate before IDT/kernel-data setup; their later failure may have
+   followed partial setup. Require a loader success log and functional
+   readback before calling kstuff loaded; socket transmission alone is
+   insufficient.
 3. Verify scoped PPR mount, title execution and key cleanup independently.
    The A53 13.60 image/profile is a separate unresolved input. Do not call
    the byte map complete fPKG, HEN, or Linux support.
