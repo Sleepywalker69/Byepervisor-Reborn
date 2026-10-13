@@ -104,12 +104,11 @@ that dynamic accessed bit in the parent PDE guard and produced a byte-identical
 704-entry list after the samples. Treat parent accessed bits separately from
 the XOTEXT bit that these diagnostics changed.
 
-These samples now cover each observed text mapping *type* and every 2 MiB
-leaf, but they are not a complete text dump or proof that every page can be
-read. All results share the reported console boot time
-`2026-10-13T11:15:09.471453Z` and pmap root `0x21894000`. A fresh-boot test
-without the AP stage is still needed to isolate the stage's causal effect;
-no text-write experiment has run.
+These earlier samples cover each observed text mapping *type* and every 2 MiB
+leaf. The later bounded full capture below supersedes their partial coverage.
+The sample results share the reported console boot time
+`2026-10-13T11:15:09.471453Z` and pmap root `0x21894000`. The AP stage's
+causal role in guest-text access remains unresolved.
 
 ## Bounded 13.60 text and mapped-data dumper
 
@@ -150,12 +149,34 @@ reported the console responsive afterward. These raw memory files are not
 reconstructed ELFs; the data capture is live and non-atomic, and its endpoint
 is the first unmapped page rather than a verified ELF section boundary.
 
+## Reversible one-byte text-write check
+
+`text_byte_write_probe_1360.c` defaults unarmed. The checked-in boot-specific
+ELF was built for console boot `1791893784.399222`, text base
+`0xffffffffd3b70000`, and protected PDE `0x0400000013e001a1`. It requires
+those values, firmware 13.60, AP completion, zero hook state, and restored
+gate/IST before changing anything. It checks the exact 16-byte preimage at
+text offset `0x2a1690`, changes one NOP byte at `+0x2a1698` from `0x90` to
+`0x66`, reads it back, restores `0x90`, verifies the 16-byte postimage, and
+restores/readbacks the original PDE. A failed readback is a failed test; the
+boot-specific ELF must not be reused after a reboot.
+
+On that boot, all reported writes, reads, byte checks, and PDE restoration
+succeeded. A separate 64 KiB capture containing the byte matched the
+pre-write capture SHA-256
+`488482d4aba95751f86c7b1906709ee2fffefd6bd5ad4beab3fcfa8fb9846685`.
+The independent read-only leaf survey again found all 3,264 text pages
+XOTEXT and read-only, and the user reported a responsive home screen. This
+is a one-byte reversible write result; it does not establish persistence or
+the AP stage's causal role in guest-text access.
+
 For the causal test, `pre_ap_state_1360.c` is a read-only fresh-boot preflight.
 It records firmware, console boot time, text base, stage and hook markers,
 kernel pmap root, and the `sys_getuid` PDE. The separate
 `pre_ap_causal_probe_1360.c` defaults to **unarmed**: it exits before a write
 unless rebuilt with the exact boot time, text base, and PDE from that fresh
 preflight. It also requires zero stage/hook markers. A KP during Relapse
-interrupted preparation of that baseline; neither the preflight nor causal
-probe has been sent on a fresh boot. No claim of AP-stage causality follows
-from the current post-AP samples.
+initially interrupted preparation of that baseline. A later guarded pre-AP
+attempt cleared one XOTEXT bit and then froze before any text-read or restore
+report, so it did not establish a clean baseline. The user asked not to repeat
+pre-HV reads on this console merely to resolve that attribution.

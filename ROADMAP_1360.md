@@ -56,22 +56,31 @@ working research foothold, not a complete 13.60 jailbreak.
    The data bytes are a non-atomic live range ending at the first gap, not a
    verified ELF `.data` section, and these files are raw memory, not a
    reconstructed kernel ELF. No dump bytes are published to GitHub.
-3. **Separate capability checks.** Verify read-only access and restoration
-   across the relevant kernel-text regions, then make any write experiment
-   reversible with exact preimage and post-write checks. Check whether the
-   access depends on the AP stage rather than assuming causality from a
-   post-wake success. Keep the VMCB stage and later text-page changes as
-   distinct results.
+3. **Separate capability checks — post-AP read/write and restoration achieved
+   on one boot; causal attribution open.** The full bounded capture read every
+   observed text page and the independent leaf survey found all 3,264 pages
+   protected afterward. A boot-guarded probe matched the exact 16-byte
+   preimage at text offset `0x2a1690`, changed the NOP at `+0x2a1698` from
+   `0x90` to `0x66`, read it back, restored `0x90`, verified the full 16-byte
+   postimage, and restored/read back the original protected PDE. A separate
+   64 KiB capture around that byte matched the earlier capture SHA-256
+   `488482d4aba95751f86c7b1906709ee2fffefd6bd5ad4beab3fcfa8fb9846685`;
+   a new read-only leaf survey again found all text pages XOTEXT and read-only.
+   The user reported the home screen responsive. The failed pre-AP test cannot
+   isolate AP causality. At the user's direction, do not repeat pre-HV reads
+   on this console merely to resolve that attribution; keep it explicitly
+   unproved while proceeding with post-HV work.
 4. **13.60 patch map and downstream chain.** Derive firmware-specific patch
    sites from the captured code and compare with existing HEN/kstuff needs.
    Add one checked change at a time, then a completion signal that the
    autoloader can observe after wake. Only after that should Y2JB schedule
    later payloads. Linux requires its own much larger hardware and boot path.
 
-The immediate goal is milestone 3: separate read and write capability checks
-and clarify the AP stage's causal contribution. The full capture gate is met
-for the observed contiguous text and mapped-data ranges. No text-write
-experiment has run; the offline candidate is not a result.
+The immediate goal is milestone 4: derive a 13.60 patch map from the captured
+code, compare it with downstream HEN/kstuff needs, and build a checked
+post-wake completion signal before autoloader integration. The operational
+read/write gate is met on one post-AP boot. AP causality remains an open
+research question and must not be inferred from this gate.
 
 ## Fresh-boot pre-AP comparison (13 October)
 
