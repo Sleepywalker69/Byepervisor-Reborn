@@ -31,6 +31,30 @@ to 13.60. Kstuff's 13.60 `mprotect` and ASLR entries are debugger trap
 addresses that alter RIP only in specific flows; converting them into
 permanent global patches would change the scope of their behavior.
 
+## PPR/fPKG source coordinates, pending semantic review
+
+The local kstuff-lite `offsets/13_60.h` also supplies the following
+data-relative coordinates. Translating each by `+0xcc0000` lands inside the
+captured text. The first two and `cleanup_keys` begin with plausible function
+prologues or a jump wrapper; the other entries are interior instruction
+addresses. These byte matches help navigate IDA, but do not establish that a
+static patch at any entry would reproduce kstuff's thread-scoped behavior.
+
+| kstuff name | Text offset | First captured bytes |
+| --- | ---: | --- |
+| `ppr_pfs_get_xts_index` | `+0xb93920` | `55 48 89 e5 41 57 41 56` |
+| `ppr_pfs_get_cmac_index` | `+0xb93a80` | `55 48 89 e5 41 57 41 56` |
+| `ppr_pfs_get_xts_return` | `+0x376409` | `85 c0 74 37 48 8d 3d 02` |
+| `ppr_pfs_get_cmac_return` | `+0x376454` | `85 c0 74 2b 48 8d 3d b7` |
+| `ppr_pfs_cleanup_keys` | `+0x36b470` | `55 48 89 e5 5d e9 06 00` |
+| `ppr_pfs_clear_key_missing` | `+0x2886a1` | `bb fe ff ff ff e8 65 4d` |
+| `sceSblServiceMailbox_lr_verifyImage` | `+0x287203` | `44 8b a5 d4 fe ff ff 89` |
+| `ppr_pfs_verify_image_no_key_success` | `+0x28755e` | `c4 63 fb f0 b5 b0 fe ff` |
+
+The source's `fpkg.c` selects an explicit firmware-13 profile and uses these
+addresses in a coordinated PPR key and image-verification path. A candidate
+kernel patch needs the whole call and failure flow, not just one listed byte.
+
 ## Gate before a downstream patch
 
 For each proposed behavior change, identify the owning function and callers
