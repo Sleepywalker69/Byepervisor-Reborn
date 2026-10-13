@@ -804,6 +804,14 @@ shifted by `0x6d` in the linked image and its compiled inner bytes changed.
 These static differences do not establish the panic's cause. Further console
 testing is on hold pending offline early-path analysis.
 
+An eighth offline candidate moves the numeric diagnostic helper to reduce
+unrelated code layout changes. Its aligned embedded payload differs from the
+sixth candidate in 242 bytes, and its compiled 34-row table checks pass.
+It has not run on PS5. The saved 13.60 ShellCore ELF also contains all seven
+imports required by the hook as PLT relocations, ruling out missing on-disk
+imports as a simple explanation for the earlier post-preimage failure; the
+live dynlib layout and actual failure reason remain unknown.
+
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
 while IST3 and IST7 are zero in that capture. This is one non-atomic boot,

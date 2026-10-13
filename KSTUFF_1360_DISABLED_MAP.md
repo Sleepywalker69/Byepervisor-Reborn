@@ -149,6 +149,12 @@ reported a kernel panic. No 34-site gate or numeric failure code was
 observed on that run. The stopping point and cause are unresolved; do not
 rerun that binary as a presumed diagnostic fix.
 
+Offline follow-up relocated the numeric diagnostic helper so the embedded
+payload differs from the sixth candidate at fewer compiled bytes. Its
+34-row table still matches. This eighth candidate is **not live-tested**;
+the smaller binary difference does not explain or eliminate the seventh
+candidate's kernel panic.
+
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake
