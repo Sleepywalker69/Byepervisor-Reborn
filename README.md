@@ -1,4 +1,9 @@
 # Byepervisor Reborn
+**Live status, 13 October 2026:** The logged 13.60 ELF in `dist/` froze one
+regular PS5 after the loader printed `Hook installed`, before the `Armed`
+notification appeared. Do not relaunch this exact build. Its console log has
+not yet been recovered, and the stopping instruction is unknown.
+
 **Note: This repo should be considered a base exploit for work to be built on top of. It is not useful to regular users in its current release state, this is intended for developers.**
 
 ## Summary

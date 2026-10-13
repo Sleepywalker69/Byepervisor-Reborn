@@ -1,5 +1,10 @@
 # 13.60 controlled-stage test
 
+**Do not execute the currently published logged ELF.** Its first live launch
+froze a 13.60 regular PS5 after `Hook installed` and before the `Armed`
+notification. This plan is retained as the record of that attempted test;
+the cause has not been diagnosed.
+
 This is a **first live test plan**, not a verified 13.60 hypervisor result.
 The ELF changes kernel page-table entries, installs a CPU 0 breakpoint hook,
 and, if the AP payload reaches the expected VMCBs, clears their nested-paging
