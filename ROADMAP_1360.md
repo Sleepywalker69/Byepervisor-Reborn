@@ -287,3 +287,35 @@ these launched. A socket send alone is not proof each payload completed.
 One or more downstream payloads could alter the checked gate/IST after the
 native coordinator's pre-send receipt check; this remains a hypothesis.
 No third attempt or additional payload launch has been started.
+The current boot's bounded evidence collection is complete. Read-only FTP
+saved `/data/pldmgr/autoload.txt` (127 bytes, SHA-256
+`6c92b3eee5f8c33f35a1e76ee9225ff9e7611b2e7586a44ff2df400036b1eff6`)
+and `pldmgr_config.txt` (183 bytes, SHA-256
+`93984f6a50e93b73e2cc334a701de0f025f24b8da26df558c390e2499f1cf8aa`).
+The config enables autoload with a five-second delay. The read-only manager
+`/autoload_status` response (275 bytes, SHA-256
+`9d7d785634084b5cb9a0d250dbfebb0602d87067dd19d5e73a80ef18ef5ae8c0`)
+reported `total=6`, `done=6`, `current=DONE`. This is manager-side status,
+not independent proof each ELF completed. The user is doing one final fresh
+boot with a full-minute Rest Mode interval; its new arm ID must be checked
+separately from these two short-rest attempts.
+
+### Final full-minute control: same post-chain mismatch
+
+On a third fresh PPSA01651 boot, the user confirmed at least one full minute
+at steady amber and a responsive home screen after wake. The new arm ID was
+`6ace477b04d7a059`, text base `ffffffffd7f10000`, root
+`000000001bd64000`. The saved V2 stage-log session again recorded
+AP-complete cleanup, `POSTWAKE_GATE`, and `POSTWAKE_PM_READY` for this ID.
+Host `/version` returned HTTP 200 body `0.5.2` before manual manager launch.
+The independent V3 status matched the ID/base/root, AP-complete stage,
+zero hook and matching completion ID, but again returned `ok=0 gate=0 ist=0`.
+Its 203-byte output SHA-256 is
+`9aa697a87bd6b71b2e4c1f4af49bcca2530cdc12446825b3e259b61666b0124c`.
+The third boot's manager `/log` captured the same six-entry autoload sequence
+and had SHA-256 `f21023145fad9af3890ed3cc12bcb6a4b30fc5ee388ec917d8bffe1456743ea8`.
+A full-minute interval did not remove the mismatch. The next diagnostic
+boundary is before versus after manager autoload; no payload should be
+credited or blamed without that measurement. Automatic Payload Manager
+startup has passed on three distinct boot/arm attempts, but post-chain
+safety validation has failed on all three. No further live launch was made.
