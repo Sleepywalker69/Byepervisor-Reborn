@@ -778,8 +778,15 @@ has actual handlers at syscall entries 592 and 608, leaving the remote
 dynamic-library failure unresolved. A separate read-only VM-map diagnostic
 found a plausible large executable ShellCore segment. A fifth candidate
 uses that ordinary process-map route for the early two-anchor and 34-site
-byte gate, ahead of IDT/kernel-data installation. Its compiled table passes
-offline verification, but it has not run on the console.
+byte gate, ahead of IDT/kernel-data installation. Its compiled table passed
+offline verification. On a fresh post-HV boot, the separate read-only
+VM-map diagnostic succeeded before kstuff. The fifth loader then matched all
+34 original ShellCore site bytes and returned an inner-payload failure. The
+outer loader skipped app.db/ShellUI/USB follow-ons, and the operator reported
+a responsive home screen. Because the failure reason was notification-only,
+the host stream does not identify the failed patch step or prove rollback.
+The next build needs a bounded host-visible failure reason and a fresh boot;
+loaded-kstuff and fPKG behavior remain unproved.
 
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,

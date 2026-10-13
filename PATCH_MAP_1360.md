@@ -315,5 +315,8 @@ entries 592 and 608, so missing entries do not explain the result. A
 read-only process VM-map query then found one executable ShellCore mapping
 large enough for the sites. A fifth candidate derives its base from that
 map and compares two anchors plus all 34 originals before kstuff's IDT and
-kernel-data changes. This route is offline-verified only; no ShellCore write
-or loaded-kstuff behavior is yet demonstrated.
+kernel-data changes. A fresh-boot read-only VM-map query succeeded, and the
+fifth loader matched all 34 live originals. It later returned failure from
+the ShellCore patch path and skipped outer follow-ons. The exact failure and
+any later write/rollback state are not host-visible yet. No loaded-kstuff
+behavior is demonstrated.

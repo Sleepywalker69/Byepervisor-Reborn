@@ -127,20 +127,27 @@ module-list and module-info calls, but the remote failure's errno was not
 captured. A separate read-only `KERN_PROC_VMMAP` diagnostic found ShellCore's
 PID and a plausible executable mapping on that boot without remote dynlib
 calls. A fifth private candidate uses that map, checks two byte anchors and
-all 34 sites **before** installing kstuff's IDT/kernel-data hooks. It passes
-offline compiled-table verification and has not run on PS5.
+all 34 sites **before** installing kstuff's IDT/kernel-data hooks. It passed
+offline compiled-table verification. On a fresh post-HV boot, a separate
+read-only VM-map query succeeded before kstuff, and the candidate matched
+all 34 live ShellCore patch-site originals. The inner loader then returned
+failure and skipped the outer loader's follow-on work. The failure reason was
+only sent as a console notification, so the host stream does not identify
+the failing step or prove that any later ShellCore writes were restored.
+The operator reported a responsive home screen. This is still **not** a
+loaded-kstuff or fPKG result.
 
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake
    failure is isolated. Run a fresh manual-mode wake only with an operator
    present and require an attempt-specific AP receipt.
-2. For the next guarded kstuff loader, repeat the current-boot receipt
-   check, then test the remote module-info path after the syscall facility
-   is installed. The guard now runs after some kernel changes, so a failed
-   guard does not imply an unchanged system. Require a loader success log
-   and functional readback before calling kstuff loaded; socket
-   transmission alone is insufficient.
+2. Recover the fifth candidate's exact `patch_shellcore()` failure reason
+   from a bounded host-visible diagnostic. Its 34-site preimage check passed
+   before IDT/kernel-data setup; the later failure may have followed partial
+   setup. Do not repeat it on the same boot. Require a loader success log and
+   functional readback before calling kstuff loaded; socket transmission
+   alone is insufficient.
 3. Verify scoped PPR mount, title execution and key cleanup independently.
    The A53 13.60 image/profile is a separate unresolved input. Do not call
    the byte map complete fPKG, HEN, or Linux support.
