@@ -64,8 +64,12 @@ It contains readable x86 code. ELF program-header mapping put all **34**
 13.60 retail patch entries in file-backed executable bytes; none already
 equaled its replacement bytes. The private per-site map records the original
 bytes, replacement, file offset and short disassembly. This is an **on-disk**
-comparison. The running module's loaded bytes and prior patches were not
-captured, and the dynamic ShellCore PPR hook is a separate path.
+comparison. A later read-only ps5debug capture on the manual-mode post-HV
+boot matched the running ShellCore's bytes at all 34 patch addresses. The
+captured context also verified the corrected two-byte original `0f 86` at
+`0x36ae22`. These reads were small and non-atomic; the debugger's transport
+does not independently prove memory validity. The dynamic ShellCore PPR hook
+is a separate path.
 
 One source entry is a concrete mismatch:
 
@@ -93,21 +97,26 @@ branch targets only; it cannot validate the intended feature behavior or
 the loaded module's bytes.
 
 An opt-in observation/mount-result full loader was rebuilt privately with
-that source-only table correction. The ELF is pinned in the private
-investigation record and has **not** run on the console. It is a candidate
-for a later supervised post-receipt test, not evidence that the fPKG path
-works. A separate offline compiled-binary check parsed all 34 retail table
-rows from the payload ELF and verified the corrected `0x36ae22` row contains
-two bytes, `90 e9`; the matching payload occurs once inside the full loader.
+that source-only table correction. A separate offline compiled-binary check
+parsed all 34 retail table rows from its payload ELF and verified the
+corrected `0x36ae22` row contains two bytes, `90 e9`; the matching payload
+occurs once inside the full loader. A later guarded full-loader test stopped
+before the ShellCore patch loop because its remote module-info call failed.
+The outer loader reported the failure and skipped its follow-on work; the
+operator confirmed the home screen remained responsive. It did **not**
+establish loaded kstuff or fPKG support. A revised source candidate uses a
+target-process buffer for that call and verifies compiled patch/preimage
+tables offline. It has not run on the PS5.
 
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake
    failure is isolated. Run a fresh manual-mode wake only with an operator
    present and require an attempt-specific AP receipt.
-2. For a future kstuff loader build, pin the exact source and binary, check
-   current ShellCore identity and each intended original byte before any
-   patch, and report module readiness separately from ELF transmission.
+2. For the revised guarded kstuff loader, repeat the exact current-boot
+   ShellCore and receipt checks, then test its target-process module-info
+   path. Require its own success log and readback before calling kstuff
+   loaded; socket transmission alone is insufficient.
 3. Verify scoped PPR mount, title execution and key cleanup independently.
    The A53 13.60 image/profile is a separate unresolved input. Do not call
    the byte map complete fPKG, HEN, or Linux support.

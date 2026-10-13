@@ -269,3 +269,23 @@ addresses and one EL3 virtual address each returned status `0x20` and zero
 bytes; the status meaning is unresolved. There is no verified 13.60 A53
 preimage, replacement, or readback target to place in this patch map. Do
 not infer a safe A53 code change from the matching kernel call offsets.
+
+## ShellCore qualification on the manual post-HV boot
+
+The running 13.60 retail ShellCore was sampled through ps5debug at all 34
+sites used by the kstuff source's retail patch table. After correcting an
+initial host-side address calculation error, every captured preimage matched
+the saved on-disk ShellCore at its compiled replacement width. The corrected
+two-byte site `0x36ae22` contained `0f 86`; the candidate replacement is
+`90 e9`. The captures are non-atomic debugger transport results, but the
+agreement across 34 addresses is stronger than the earlier on-disk-only
+map. The operator confirmed the home screen remained responsive.
+
+A guarded full-loader test then stopped at its ShellCore module-info call,
+before those patch writes. It reported failure, and its outer loader skipped
+its follow-on work; the operator again confirmed a responsive home screen.
+The revised candidate stages the module-info output inside ShellCore's own
+address space and is compiled offline. It has not run on the console. The
+failed loader had already entered its r0gdb setup, so a fresh boot is the
+next live-test boundary. No new kernel semantic patch, loaded kstuff status,
+or fPKG behavior is proved by this ShellCore byte match.

@@ -730,7 +730,27 @@ patch rows from its embedded payload and confirmed the corrected two-byte
 `90 e9` entry at `0x36ae22`. The matching payload binary is embedded once.
 This closes the source-to-build check for that table; loaded ShellCore bytes,
 the dynamic PPR hook, A53 behavior, mount result, key cleanup and fPKG launch
-still require separate live evidence. The full loader has not run on PS5.
+still require separate live evidence. That offline candidate had not run on
+PS5 at this stage of the investigation.
+
+A later manual-mode post-HV boot supplied a bounded read-only comparison of
+the running retail ShellCore against the saved on-disk image. All 34 patch
+sites matched at their compiled write widths, including `0f 86` at the
+corrected two-byte site. The user confirmed the home screen remained
+responsive. This establishes current-boot patch preimages with the debugger's
+non-atomic memory-read limits; it does not establish that kstuff can apply
+them or that fPKG behavior works.
+
+One guarded full-loader ELF was then sent through elfldr. Its preflight
+reported `reason=module_info` before the ShellCore patch loop, and the outer
+loader reported that it skipped its follow-on work. The user again confirmed
+the home screen was responsive. Source review found that the remote module
+syscall had been given a pointer in the loader's address space. A revised
+private candidate stages that structure in ShellCore's address space,
+checks all 34 preimages, orders code-cave writes before their redirecting
+branches, and verifies writes with a rollback attempt on failure. Its
+compiled tables and embedded payload passed offline verification. It needs
+a fresh manual-mode boot and live run; no kstuff success is claimed yet.
 
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
