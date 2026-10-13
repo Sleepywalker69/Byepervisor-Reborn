@@ -1,0 +1,45 @@
+{
+  "firmware": "13.60 (0x13600007)",
+  "text_base": "0xffffffffdda40000",
+  "pmap_root": "0x0000000021894000",
+  "console_boot_time": {
+    "seconds": 1791890109,
+    "microseconds": 471453
+  },
+  "length": 16384,
+  "sha256": "299a199c73c6850e6c232cd7c6ea920345ab0eb68d3a85334c714d39915eb77e",
+  "pages": [
+    {
+      "index": 0,
+      "offset": "0x400000",
+      "virtual_address": "0xffffffffdde40000",
+      "original_pde": "0x040000001de001a1",
+      "sha256": "8e4c182caa2364df663f71a1b5e9ff496ee6e908dc8426a8f9eb251973ead496"
+    },
+    {
+      "index": 1,
+      "offset": "0x600000",
+      "virtual_address": "0xffffffffde040000",
+      "original_pde": "0x040000001e0001a1",
+      "sha256": "946b8fafdc3d839a59545386b57939a1974962171c788544b96cb55b66bdaa4c"
+    },
+    {
+      "index": 2,
+      "offset": "0x800000",
+      "virtual_address": "0xffffffffde240000",
+      "original_pde": "0x040000001e2001a1",
+      "sha256": "b95afe80032dd439a3f956879a006dd85d84f65a8a2f919fddd9f4c1a59cad02"
+    },
+    {
+      "index": 3,
+      "offset": "0xa00000",
+      "virtual_address": "0xffffffffde440000",
+      "original_pde": "0x040000001e4001a1",
+      "sha256": "957a7d13fd7662ab327727ee9bc1f686d93f4e0cc14b3d13950edcddbb7a3cb9"
+    }
+  ],
+  "source_log": "diagnostics/captures/text-span-samples-1360-host.log",
+  "source_log_sha256": "82fbeaa449217d0fddd42819cf1c8b0d125482f77bdafa2ec5c053919f3d42a3",
+  "capture_elf_sha256": "a3019848b7c02c67b985e4cc1bb660f7f18b84b63938ec170735a50b0b0dab25",
+  "postcheck_log_sha256": "f96514da625ceed25d52c06000d432f4fb2ad55e0f7952bbcbbeb14b4ee3ea645"
+}

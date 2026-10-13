@@ -82,3 +82,31 @@ console reported boot time `2026-10-13T11:15:09.471453Z`, and the host file
 was created at `2026-10-13T11:52:58Z`. These are provenance observations,
 not proof of an independent console identity. No conclusion about patch
 sites should be made from a missing portion of the kernel image.
+
+## Milestone 3: read coverage and restoration survey
+
+The read-only `text_mapping_survey_1360.c` found five 2 MiB `XOTEXT` leaves
+between 4 KiB-mapped text edges. `text_span_samples_1360.c` temporarily
+cleared one measured PDE at a time to capture a 4 KiB page from each of the
+four untested 2 MiB leaves. All four reads completed; each PDE was restored
+and read back before the next page. A separate mapping survey afterward was
+byte-identical to the original 829-byte survey.
+
+`text_boundary_pte_survey_1360.c` read all 704 PTEs covering the first and
+last 4 KiB-mapped text spans. All 704 were present, `XOTEXT`, read-only, and
+NX-clear on this boot, with continuous physical page numbering. It did not
+read their protected page contents. `text_boundary_samples_1360.c` then
+captured one page at each edge, restoring the exact modified PTE after each.
+The first parent PDE's accessed bit changed from `0x03` to `0x23` during that
+read; the two text PTEs themselves returned to their original values. The
+read-only postcheck records both. A revised boundary PTE survey permits only
+that dynamic accessed bit in the parent PDE guard and produced a byte-identical
+704-entry list after the samples. Treat parent accessed bits separately from
+the XOTEXT bit that these diagnostics changed.
+
+These samples now cover each observed text mapping *type* and every 2 MiB
+leaf, but they are not a complete text dump or proof that every page can be
+read. All results share the reported console boot time
+`2026-10-13T11:15:09.471453Z` and pmap root `0x21894000`. A fresh-boot test
+without the AP stage is still needed to isolate the stage's causal effect;
+no text-write experiment has run.

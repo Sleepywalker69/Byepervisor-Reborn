@@ -1,0 +1,24 @@
+{
+  "firmware": "13.60 (0x13600007)",
+  "text_base": "0xffffffffdda40000",
+  "pmap_root": "0x0000000021894000",
+  "console_boot_time": {
+    "seconds": 1791890109,
+    "microseconds": 471453
+  },
+  "entry_count": 704,
+  "counts": {
+    "present": 704,
+    "xotext": 704,
+    "writable": 0,
+    "nx": 0,
+    "zero": 0
+  },
+  "physically_contiguous_within_each_edge": true,
+  "continuous_from_first_edge_across_gap": true,
+  "first_entry": "0x040000001da40101",
+  "last_entry": "0x040000001e6ff101",
+  "source_sha256": "d51cb766f55bd912ce64364d5832ead77cb566b65ad728e6aee3d719bc30cc0d",
+  "source_log": "diagnostics/captures/text-boundary-pte-survey-1360-host.log",
+  "postcheck_log_sha256": "d51cb766f55bd912ce64364d5832ead77cb566b65ad728e6aee3d719bc30cc0d"
+}

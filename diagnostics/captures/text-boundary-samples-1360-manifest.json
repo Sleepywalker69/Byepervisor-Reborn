@@ -1,0 +1,31 @@
+{
+  "firmware": "13.60 (0x13600007)",
+  "text_base": "0xffffffffdda40000",
+  "pmap_root": "0x0000000021894000",
+  "console_boot_time": {
+    "seconds": 1791890109,
+    "microseconds": 471453
+  },
+  "length": 8192,
+  "sha256": "53e40235542eae4255322d09e4cb80a69e2f410d9632a5c830d57aa1d94babf4",
+  "pages": [
+    {
+      "index": 0,
+      "offset": "0x0",
+      "virtual_address": "0xffffffffdda40000",
+      "original_pte": "0x040000001da40101",
+      "sha256": "333d6a28f2c06abcc209663a285b9b9e41b4a26b28487384fcb171a6bc75a187"
+    },
+    {
+      "index": 1,
+      "offset": "0xbc0000",
+      "virtual_address": "0xffffffffde600000",
+      "original_pte": "0x040000001e600121",
+      "sha256": "96a8aaeb60b3784d8aa8985066b50479993bd8fb710a489dc6d1b398fa5663b7"
+    }
+  ],
+  "source_log": "diagnostics/captures/text-boundary-samples-1360-host.log",
+  "source_log_sha256": "d037434f83e99f4ceda981b72e86cee13c9518d0e1438440402fceedb74c69ac",
+  "capture_elf_sha256": "e6ce874135d1338c90749b72adebe5e2e895a8dbced75dad834aadc0d6156216",
+  "postcheck_log_sha256": "d51cb766f55bd912ce64364d5832ead77cb566b65ad728e6aee3d719bc30cc0d"
+}

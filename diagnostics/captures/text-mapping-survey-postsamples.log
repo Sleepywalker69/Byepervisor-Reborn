@@ -1,0 +1,9 @@
+SURVEY_BEGIN fw=0x13600007 text=0xffffffffdda40000 data_delta=0xcc0000 root=0x0000000021894000 boot_sec=1791890109 boot_usec=471453
+SURVEY_LEAF off=0x000000 slot=0xffff821321929768 entry=0x0000000021897003 ps=0 rw=1 xotext=0 nx=0
+SURVEY_LEAF off=0x200000 slot=0xffff821321929770 entry=0x040000001dc001a1 ps=1 rw=0 xotext=1 nx=0
+SURVEY_LEAF off=0x400000 slot=0xffff821321929778 entry=0x040000001de001a1 ps=1 rw=0 xotext=1 nx=0
+SURVEY_LEAF off=0x600000 slot=0xffff821321929780 entry=0x040000001e0001a1 ps=1 rw=0 xotext=1 nx=0
+SURVEY_LEAF off=0x800000 slot=0xffff821321929788 entry=0x040000001e2001a1 ps=1 rw=0 xotext=1 nx=0
+SURVEY_LEAF off=0xa00000 slot=0xffff821321929790 entry=0x040000001e4001a1 ps=1 rw=0 xotext=1 nx=0
+SURVEY_LEAF off=0xc00000 slot=0xffff821321929798 entry=0x000000002189d023 ps=0 rw=1 xotext=0 nx=0
+SURVEY_END
