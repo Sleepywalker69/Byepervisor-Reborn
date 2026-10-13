@@ -223,3 +223,15 @@ pre-Rest build marker. The 209,576-byte V2 candidate ELF has SHA-256
 `fceb24e5f83f3d14358fe4741e5e65611ac68781ab4edb80ff8e839f33010afb`.
 SDK compilation, 13 native config cases and Y2JB's 48 parser/five transport
 cases passed offline. V2 has not been installed or run on the console.
+
+GitHub Actions run `38415881929` passed for Y2JB commit `e454eda` and built
+the V2 UFS2 image. Its manifest and independent local SHA-256 match:
+336,789,504 bytes, `7187c22657153ccfcd1ed47afee1303e4e6afa5743355262d3b5d2a95991d9ac`.
+Both regional title images were staged, fully read back, promoted and fully
+read back via ftpsrv. Each final file matched that hash. Prior images remain
+as `download0.dat.pre-postwake-v2-20261013`. The local deployment report's
+SHA-256 is `810f28a322ab9cdfe6f055d73db4365ae06fb2f37478a70cd647cf7363339efd`.
+Before replacement, PPSA01651's image hash was
+`341a7bf5997b1e36f2928762769c0aaafb448033d9849e18fd8620bc35e729f5`,
+different from the V1 image; PPSA01652 still matched V1. The reason for that
+PPSA01651 difference has not been investigated. V2 has not yet run on PS5.
