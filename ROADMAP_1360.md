@@ -191,3 +191,15 @@ embedded hashes; SHA-256
 `24ad2fe211985c7cdd169baf24c88c36a34b148ade9cdabb7d35615c12c25550`.
 These are offline checks only. A fresh boot, installed test image, one Rest
 Mode cycle, matching receipt, and live port 8084 response remain required.
+Payload Manager's own autoload preferences take effect after it starts; the
+native gate does not override them. GitHub Actions run `38413832508` built the
+UFS2 image from Y2JB commit `02dcc79`; the 336,789,504-byte image's manifest
+and independent local SHA-256 both equal
+`f5191fa528ac86eeaaeeb9f55574d826e0554b4ba9c0a490e788598f1b55e0d8`.
+Both PPSA01651 and PPSA01652 images were installed via ftpsrv on port 2121.
+Staged and final full-file readbacks matched the image hash above; prior
+images remain as `download0.dat.pre-postwake-20261013`. The 1,197-byte local
+deployment report has SHA-256
+`30af26db8a2fc2386e0ce0dcb220da5920fdb4bb5e1bd87ad6ae4e930e64b82c`.
+The new image has not yet been launched, so live post-wake Payload Manager
+readiness remains unproved.
