@@ -320,3 +320,8 @@ fifth loader matched all 34 live originals. It later returned failure from
 the ShellCore patch path and skipped outer follow-ons. The exact failure and
 any later write/rollback state are not host-visible yet. No loaded-kstuff
 behavior is demonstrated.
+
+The sixth live candidate repeated the same passing preimage result and
+nonzero inner return; its added inner stdout failure line was absent. The
+seventh candidate moves the diagnostic to the outer loader's return-code
+line and is offline-verified only.

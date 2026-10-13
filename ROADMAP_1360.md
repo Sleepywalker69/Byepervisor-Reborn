@@ -788,6 +788,13 @@ the host stream does not identify the failed patch step or prove rollback.
 The next build needs a bounded host-visible failure reason and a fresh boot;
 loaded-kstuff and fPKG behavior remain unproved.
 
+A sixth private diagnostic also passed the 34-site live preimage gate, but
+its added inner stdout message did not reach the host; the outer loader again
+reported only a nonzero result, and the console remained responsive. A
+seventh candidate encodes the existing failure reason in that return value
+and prints it from the outer loader. Its 34 compiled patch/preimage rows pass
+offline verification. This candidate has not run on the console.
+
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
 while IST3 and IST7 are zero in that capture. This is one non-atomic boot,

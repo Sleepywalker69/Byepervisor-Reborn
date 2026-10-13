@@ -137,13 +137,21 @@ the failing step or prove that any later ShellCore writes were restored.
 The operator reported a responsive home screen. This is still **not** a
 loaded-kstuff or fPKG result.
 
+A sixth private candidate added a host-stream line for the ShellCore patch
+failure, but its one live run again produced only the passing 34-site guard
+and the outer loader's failure line. The added inner stdout line did not
+arrive; the console remained responsive. The exact patch failure is still
+unidentified. A seventh candidate returns a numeric reason code to the
+outer loader, which already reaches the host stream; its compiled tables
+pass offline verification and it has not run on PS5.
+
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake
    failure is isolated. Run a fresh manual-mode wake only with an operator
    present and require an attempt-specific AP receipt.
-2. Recover the fifth candidate's exact `patch_shellcore()` failure reason
-   from a bounded host-visible diagnostic. Its 34-site preimage check passed
+2. Recover the ShellCore patch failure reason using the bounded outer-loader
+   return code. The 34-site preimage check passed
    before IDT/kernel-data setup; the later failure may have followed partial
    setup. Do not repeat it on the same boot. Require a loader success log and
    functional readback before calling kstuff loaded; socket transmission
