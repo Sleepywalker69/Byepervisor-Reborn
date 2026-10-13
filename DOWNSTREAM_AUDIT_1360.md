@@ -195,3 +195,11 @@ The public `cragson/mp4rw` source at `cc8100f` uses the same DECI5S
 access-size encoding as the diagnostic probe. It does not define the
 observed `0x20` result's meaning. This source comparison found no verified
 packet fix for the failed reads.
+
+The same public example names three older EL3 virtual addresses as possible
+A53 ELF headers. A one-shot 13.60 probe requested four bytes at each of
+`0x88100000`, `0x88440000`, and `0x8a000000` after confirming the live A53
+version. All three returned `status=0x20` and zero bytes; no ELF signature
+was obtained. The probe source and output remain private. The tested
+historical addresses do not supply a current 13.60 image, so further
+address guessing is paused pending a decoded status or verified map.
