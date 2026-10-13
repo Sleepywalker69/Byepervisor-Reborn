@@ -514,3 +514,11 @@ test title is a fake `app.pkg`, so the next comparison should use a known-good
 13.60 package of the same kind or inspect its mount/authorization path.
 Do not infer that the new package is malformed or that PPR is solely
 responsible from this two-title comparison.
+
+The A53 status action confirmed the live retail `releases/13.60` build and
+stopped at the absent exact profile. Small reads at two older physical
+addresses and one EL3 virtual address all returned status `0x20`, zero
+bytes, while `GET_CONF` worked. The next acquisition route must produce a
+matching A53 image or validated current memory map; scanning further
+unverified addresses or loading the older fast installer would not advance
+the gate.

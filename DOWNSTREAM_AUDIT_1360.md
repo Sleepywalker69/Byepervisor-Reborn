@@ -177,3 +177,15 @@ therefore not a ready 13.60 dependency. The current kstuff opt-in source
 gate and matching kernel offsets do not supply that A53 profile. The next
 PPR gate is to identify the 13.60 A53 image and validate its full selector
 and caller layout before a plaintext package-read test.
+
+The public patcher's default status action ran once on 13.60. It obtained
+the live retail A53 `releases/13.60` version through `GET_CONF`, then
+reported `no exact PPR profile` and exited before any patch action. Three
+bounded memory-read probes used the older physical layout address, older
+physical L2-table address, and a late-firmware EL3 virtual address. Each
+returned a valid response with status `0x20` and zero transferred bytes;
+`GET_CONF` continued to work. The status value's precise meaning is not
+established, and the probes do not show that every A53 address is blocked.
+The retained 13.60 PUP has no plaintext A53 release marker in a bounded
+whole-file scan. A matching A53 image or independently validated live
+memory map remains necessary for a 13.60 profile.
