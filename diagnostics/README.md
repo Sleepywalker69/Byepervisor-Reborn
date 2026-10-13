@@ -110,3 +110,13 @@ read. All results share the reported console boot time
 `2026-10-13T11:15:09.471453Z` and pmap root `0x21894000`. A fresh-boot test
 without the AP stage is still needed to isolate the stage's causal effect;
 no text-write experiment has run.
+
+For the causal test, `pre_ap_state_1360.c` is a read-only fresh-boot preflight.
+It records firmware, console boot time, text base, stage and hook markers,
+kernel pmap root, and the `sys_getuid` PDE. The separate
+`pre_ap_causal_probe_1360.c` defaults to **unarmed**: it exits before a write
+unless rebuilt with the exact boot time, text base, and PDE from that fresh
+preflight. It also requires zero stage/hook markers. A KP during Relapse
+interrupted preparation of that baseline; neither the preflight nor causal
+probe has been sent on a fresh boot. No claim of AP-stage causality follows
+from the current post-AP samples.
