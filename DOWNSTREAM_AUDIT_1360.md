@@ -83,6 +83,13 @@ one non-atomic capture. It does not validate live register contents,
 secure-module responses, lifecycle handling, or the safety of enabling the
 source's dormant 13.60 profile. No PPR interception or fPKG test ran.
 
+A further offline trace of the same captured x86 code found that the
+verifyImage no-key success block loads a packed qword from frame `-0x150`
+and publishes its lower and upper 32-bit halves as the two key indices.
+The clear-key missing-key trap's profiled `+0x0a` continuation joins its
+common epilogue. These are selected **static ABI relationships**; they do
+not make the whole upstream implementation or its A53 side 13.60-ready.
+
 ## Gate for downstream use
 
 Do not count sending this ELF, its process startup, or the public
@@ -192,19 +199,49 @@ The retained 13.60 PUP has no plaintext A53 release marker in a bounded
 whole-file scan. A matching A53 image or independently validated live
 memory map remains necessary for a 13.60 profile.
 
-The public `cragson/mp4rw` source at `cc8100f` uses the same DECI5S
+The public `astrelsky/mp4rw` source at `cc8100f` uses the same DECI5S
 `READ_MEMORY` command, physical and EL3-VA selectors, and alignment-based
 access-size encoding as the diagnostic probe. It does not define the
 observed `0x20` result's meaning. This source comparison found no verified
 packet fix for the failed reads.
 
+**Offline correction to the historical A53 anchor probe:** the three
+`0x88100000`/`0x88440000`/`0x8a000000` requests above used the patcher's
+ordinary read callback, which sets `mem_type=0x020000` (physical-to-EL3).
+The `astrelsky/mp4rw` reference probes those values with `mp4_read()`, whose
+header sets `mem_type=0x430000` (EL3 virtual). Therefore the three failures
+do not test those candidate EL3 virtual addresses in the reference mode.
+A separate EL3-virtual diagnostic read at `0x110000` also returned `0x20`
+and zero bytes; it did not probe the three anchors. This does not establish
+a current 13.60 map, a working read command, or the meaning of `0x20`.
+No console retry was made after the V7 panic.
+
+For this candidate's plaintext/no-auth design, the kernel passes synthetic
+AES `0xff` and SHA `0xfe` indices toward A53. The reviewed A53 selector
+source matches that complete pair and substitutes plaintext transfer and
+terminal completion for stock AES-XTS/SHA3-CMAC work. The stock read path
+is not shown to accept the synthetic pair. A validated 13.60 A53 selector
+or an independently demonstrated equivalent is therefore a remaining
+functional gate for this design. The public selector profiles reviewed here
+end at 11.40. The saved x86 kernel text/mapped-data capture and the outer
+decrypted PUP supplied no directly usable matching A53 ELF in bounded
+checks. An alleged unreleased A53 exploit is not a reproducible dependency.
+
+The private opt-in source also needs a failure-atomicity review before a
+new plaintext request: its verifyImage emulation modifies output buffers
+before two later kernel copies can fail, and those failure branches return
+to the stock mailbox path without restoring every earlier write. This is
+a source-level potential hazard, not an observed cause of V5/V6 failure.
+The outstanding synthetic-pair metric is a global count, not per-title
+ownership proof.
+
 The same public example names three older EL3 virtual addresses as possible
-A53 ELF headers. A one-shot 13.60 probe requested four bytes at each of
-`0x88100000`, `0x88440000`, and `0x8a000000` after confirming the live A53
-version. All three returned `status=0x20` and zero bytes; no ELF signature
-was obtained. The probe source and output remain private. The tested
-historical addresses do not supply a current 13.60 image, so further
-address guessing is paused pending a decoded status or verified map.
+A53 ELF headers. The old 13.60 probe requested four bytes at each of
+`0x88100000`, `0x88440000`, and `0x8a000000` through the **physical**
+selector after confirming the live A53 version. All three returned
+`status=0x20` and zero bytes. The probe source and output remain private.
+Those results do not test the example's virtual-address calls, and no
+matching 13.60 image or current map has been established.
 
 ## Live 13.60 kernel-side PPR profile gate
 
@@ -301,3 +338,5 @@ The source attempts reverse readback-verified restoration of touched ShellCore s
 | Functional fPKG | Test package installed and reported playable; a folder-app launch control succeeded. | Rejected launch, missing mount/read, no test-title process or visible execution, or leaked key pair. Final known-good 13.60 homebrew fPKG requires independent install, mount/read, process or on-screen run, and cleanup evidence. |
 
 **Pause:** no console contact, image upload, Rest Mode cycle, ELF send or live test until the operator explicitly resumes. The console's recovery state after V7 is unknown. The first resumed interaction must establish that state before selecting one hash-pinned test with a fresh attempt receipt, durable log, checkpoint, stop condition and recovery plan. An automated payload chain is not a qualification path.
+
+**Offline A53 diagnostic preparation.** A separate private resident LAN probe has been built and host-tested, but never sent to a PS5. It distinguishes physical (`0x020000`) and EL3 virtual (`0x430000`) SDBGP reads, records the full read result fields, permits repeated serial requests on one boot, and stops on malformed transport responses. The host can preserve one bounded page at a time with per-chunk logs and hashes. This is an observation tool using the existing MP4 route, not a 13.60 A53 exploit or a validated full-memory dumper. The copied transport still relies on transient x86 kernel/mailbox writes. Neither the source, token, ELF, nor raw captures are in this public fork. Its first live request requires explicit resumption, observed console recovery, a fresh current-boot receipt, exact binary hash and one stop-gated test. A package-trigger route remains a separate hypothesis; a dummy package does not itself establish A53 code execution.
