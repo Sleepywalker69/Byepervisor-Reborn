@@ -5,8 +5,10 @@ while kstuff-lite contains the available 13.60 loader/FSELF/NPDRM paths. The
 first downstream target should be a complete scoped capability with its
 consumer and failure behavior, not a permanent copy of one debugger trap byte.
 No candidate below has yet been applied as a functional kernel patch. The
-attempt-specific post-wake receipt is still awaiting its first controlled
-console run; downstream writes remain gated on it.
+attempt-specific post-wake receipt passed before Payload Manager dispatch on
+three distinct boots. Later independent reads returned gate/IST mismatches
+after the manager's six-entry autoload. The third boot used a full-minute
+Rest Mode interval and later froze. Downstream writes remain on hold.
 
 ### Complete kstuff-lite path to examine after receipt
 
@@ -101,3 +103,25 @@ The optional post-wake Payload Manager candidate changes no additional
 kernel text bytes. It is a receipt-gated userland ELF launch after the proven
 AP/hook-cleanup sequence. Its offline build is not a new kernel capability or
 a substitute for the downstream semantic patch gate above.
+
+## IDT ownership after the optional manager chain
+
+The saved 13.60 kstuff-lite source is a useful mechanism reference for the
+later gate mismatch. Its `prosper0gdb/offsets/13_60.h` defines `idt` at
+`kdata+0x2ef4300`. With the observed `kdata=text+0xcc0000`, that is
+`text+0x3bb4300`, exactly the IDT array address used by Byepervisor's V3
+status reader. Kstuff-lite `ps5-kstuff/main.c` installs its exception handler
+at `IDT+16*1` and changes that gate's IST selector to 4. Thus a kstuff-style
+resident payload can legitimately make the saved pre-hook vector-1 gate differ
+from the later live gate without undoing the earlier AP-complete receipt.
+
+This is a source-level analogue, not attribution of the user's running
+`kstuff-fpkg-1.13-dr-test6.elf` binary: its exact source/build was not
+verified. The local kstuff-lite code shown writes TSS IST indices 3, 4 and
+optionally 7, whereas Byepervisor's saved hook uses IST 6 at TSS offset
+`0x4c`. That source slice does not explain the observed `ist=0`; another
+payload, a different kstuff build, or a status-layout issue remains possible.
+The safer next live comparison would measure the pinned receipt before any
+manager autoload and again afterward, with a fresh boot. The host-only watcher
+for this is offline-tested but has not run live. The user selected `manual`
+post-wake mode for the replacement image after the third-boot freeze.
