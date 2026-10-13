@@ -189,3 +189,9 @@ established, and the probes do not show that every A53 address is blocked.
 The retained 13.60 PUP has no plaintext A53 release marker in a bounded
 whole-file scan. A matching A53 image or independently validated live
 memory map remains necessary for a 13.60 profile.
+
+The public `cragson/mp4rw` source at `cc8100f` uses the same DECI5S
+`READ_MEMORY` command, physical and EL3-VA selectors, and alignment-based
+access-size encoding as the diagnostic probe. It does not define the
+observed `0x20` result's meaning. This source comparison found no verified
+packet fix for the failed reads.
