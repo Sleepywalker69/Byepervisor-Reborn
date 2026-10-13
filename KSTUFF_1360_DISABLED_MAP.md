@@ -31,7 +31,7 @@ cleanup and cross-boot stability are not settled by an in-range address.
 | Path | Current source behavior on 13.60 | Evidence still needed before relying on it |
 | --- | --- | --- |
 | Plaintext PPR/fPKG | Upstream `get_ppr_profile()` returns `NULL` above 11.60 even though it contains a 13.60 profile. A separate exact-13.60 opt-in source patch and observation build were compiled. A narrow live check reached that profile and later saw PPR G6 activity. | Complete mount result, plaintext read behavior, synthetic key-pair release, and actual title execution. The 13.60 A53 side has no verified profile. |
-| A53 PPR patch | No 13.60 profile in the reviewed public A53 patcher. Earlier bounded live reads returned zero bytes with status `0x20`; its meaning was not resolved. | A matching 13.60 A53 image or verified live memory map, then selector, caller, preimage and readback validation. The kernel capture alone cannot supply this. |
+| A53 PPR patch | No 13.60 profile in the reviewed [public A53 patcher](https://github.com/drakmor/ppr-patch); its exact profile archive ends at 11.40. Earlier bounded live reads returned zero bytes with status `0x20`; its meaning was not resolved. | A matching 13.60 A53 image or verified live memory map, then selector, caller, preimage and readback validation. The kernel capture alone cannot supply this. |
 | fSELF, NPDRM and generic syscall interception | The 13.60 kernel offset table and resident handlers are present; there is no top-level 13.60 disable switch for these paths. `NPDRM_PORTING` is a commented diagnostic compile mode, not the production path. | Exercise each relevant consumer with separate status/cleanup checks. A byte-mapped mailbox return site does not validate request structures or emulation. |
 | `FIRMWARE_PORTING` | Not enabled in the normal build. It relaxes unsupported-firmware and unresolved-symbol failures and adds porting hooks. | Do not use it as a workaround; resolve any missing symbol or layout explicitly. |
 | `KSTUFF_OBS` | Optional instrumentation; enabled in the observed 13.60 candidate to expose counters. | Associate each counter change with an exact operation and module build; counters alone do not prove fPKG launch. |
@@ -84,5 +84,15 @@ the earlier marker-image power-off, when this table was not newly deployed.
    The A53 13.60 image/profile is a separate unresolved input. Do not call
    the byte map complete fPKG, HEN, or Linux support.
 
-Raw kernel, ShellCore and A53 images, private offset maps, and IDA databases
-remain local and are not part of this repository.
+Raw kernel and ShellCore images, private offset maps, and IDA databases
+remain local and are not part of this repository. No 13.60 A53 image was
+obtained.
+
+The reviewed public A53 tooling uses `/dev/mp4/dump` and DECI5S
+`READ_MEMORY`, but its published profile and code-execution examples cover
+older firmware. A [recent transport report](https://github.com/drakmor/ppr-patch/issues/2)
+fixes a specific 9.40–11.20 aperture/sequence issue and reports an 11.20
+test; it does not verify the same fix or an A53 memory map on 13.60. The
+next 13.60 acquisition step is to identify a valid live memory aperture and
+interpret the observed `0x20` response before attempting a bounded read,
+not to reuse old A53 addresses as if they were mapped on this firmware.
