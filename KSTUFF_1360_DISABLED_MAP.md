@@ -85,7 +85,9 @@ An opt-in observation/mount-result full loader was rebuilt privately with
 that source-only table correction. The ELF is pinned in the private
 investigation record and has **not** run on the console. It is a candidate
 for a later supervised post-receipt test, not evidence that the fPKG path
-works.
+works. A separate offline compiled-binary check parsed all 34 retail table
+rows from the payload ELF and verified the corrected `0x36ae22` row contains
+two bytes, `90 e9`; the matching payload occurs once inside the full loader.
 
 ## Next qualification gates
 
