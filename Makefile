@@ -35,7 +35,7 @@ all: $(ELF)
 $(PAYLOAD_HDR): $(PAYLOAD_DIR)/break_hv.c $(PAYLOAD_DIR)/entry.S $(PAYLOAD_DIR)/link.ld include/stage_status.h
 	sh $(PAYLOAD_DIR)/build.sh
 
-$(ELF): $(PAYLOAD_HDR) main.c kdlsym.c khook.c paging.c util.c $(wildcard include/*.h include/offsets/*.h)
+$(ELF): $(PAYLOAD_HDR) main.c kdlsym.c khook.c paging.c util.c stage_log.c $(wildcard include/*.h include/offsets/*.h)
 	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 
 clean:

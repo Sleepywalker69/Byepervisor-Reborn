@@ -12,6 +12,7 @@
 #include "util.h"
 #include "paging.h"
 #include "stage_status.h"
+#include "stage_log.h"
 
 #include "break_hv_payload/break_hv.h"
 
@@ -208,6 +209,11 @@ int main(void)
   // Do a quick firmware version detect, if we don't have offsets for it, goodbye!
   fw = kernel_get_fw_version();
   printf("[+] Detected firmware: %x.%x\n", (fw & 0xFF000000) >> 0x18, (fw & 0x00FF0000) >> 0x10);
+  if (stage_logf("SESSION start build=13.60-stage-log-v2 firmware=0x%x pid=%d",
+                 fw, getpid()) != 0) {
+    notifyf("[ERROR] Byepervisor Reborn\nCannot write stage log; not arming");
+    return 1;
+  }
 
   if (kdlsym(KERNEL_SYM_HV_MP_STARTUP_CALL) == 0) {
     printf("[!] Undetected firmware, exiting!\n");
@@ -380,6 +386,8 @@ int main(void)
     }
     if (o != last_stage) {
       printf("[+] Stage changed: 0x%lx\n", o);
+      if (stage_logf("STAGE 0x%lx", o) != 0)
+        notifyf("Byepervisor Reborn\nStage log write failed");
       last_stage = o;
       if (o == STAGE_HOOK_FIRED)
         notifyf("Byepervisor Reborn\nResume hook fired; waiting for AP");

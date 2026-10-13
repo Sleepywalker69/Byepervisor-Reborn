@@ -14,3 +14,8 @@ gcc -std=c11 -Wall -Wextra -Werror -I./include \
   tests/test_khook_contract.c khook.c \
   -o "$test_dir/test_khook_contract"
 "$test_dir/test_khook_contract"
+
+gcc -std=c11 -Wall -Wextra -Werror -I./include \
+  tests/test_stage_log.c stage_log.c \
+  -o "$test_dir/test_stage_log"
+"$test_dir/test_stage_log"

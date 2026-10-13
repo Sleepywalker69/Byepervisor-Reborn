@@ -29,6 +29,12 @@ kernel text. Rest Mode is entered manually. The test sequence and stop
 conditions are in [TEST_PLAN_1360.md](TEST_PLAN_1360.md). The exact built ELF
 is in `dist/`, with its SHA-256 in `dist/SHA256SUMS`.
 
+Each notification and observed stage is appended and synced to
+`/data/ps5-s3-1360/byepervisor-reborn-1360.log`. A missing or unwritable log
+stops the ELF before the hook is armed. A shutdown before userland resumes may
+still leave only the pre-sleep entries; the AP code itself does not perform
+filesystem I/O.
+
 ## Important Notes
 - You may need to go to Settings -> System -> Power Saving -> Features Available in Rest Mode
   - Set Supply Power to USB Ports to "Always"
@@ -64,7 +70,7 @@ Some firmwares might require more extensive modifications if gadgets don't exist
 
 ## How to use
 1. Run kernel exploit chain and get to elfldr
-2. Send the exact `dist/byepervisor_reborn_1360_stage.elf` build through elfldr.
+2. Send the exact `dist/byepervisor_reborn_1360_stage_logged.elf` build through elfldr.
 3. Wait for the `Armed` notification, enter Rest Mode manually, wait for steady
    amber, and wake the console once. Observe the stage and cleanup notices.
    Full steps and stop conditions: [TEST_PLAN_1360.md](TEST_PLAN_1360.md).

@@ -18,12 +18,13 @@ checks reduce false success reports but do not establish a safe live path.
    validated as equivalent for this test.
 3. On the PC, compare the file's SHA-256 with `dist/SHA256SUMS`. Use only that
    exact ELF for this run and record the hash in the test log.
+   The console log will be `/data/ps5-s3-1360/byepervisor-reborn-1360.log`.
 4. Enable the PS5 Rest Mode option **Supply Power to USB Ports: Always** if it
    is not already set.
 
 ## One run
 
-1. Send `dist/byepervisor_reborn_1360_stage.elf` to the running elfldr.
+1. Send `dist/byepervisor_reborn_1360_stage_logged.elf` to the running elfldr.
    Record the launch time and every notification verbatim.
 2. If the payload reports an unsupported firmware, wrong model, prior stage
    state, failed staging, invalid page table, or hook install error, **stop**.
@@ -36,6 +37,9 @@ checks reduce false success reports but do not establish a safe live path.
    `Resume hook fired`, `AP entered`, `AP rejected VMCB layout`, or
    `AP stage complete; gate/IST restored. XOM untested.` Also note any
    `Hook cleanup failed` notice or shutdown.
+6. After the console is stable, retrieve the `.log` file through FTP and
+   preserve its size, SHA-256, and exact contents. The ELF appends to that
+   path, so a later run does not erase earlier sessions.
 
 ## Interpretation and stop conditions
 
