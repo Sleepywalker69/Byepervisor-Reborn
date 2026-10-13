@@ -75,6 +75,12 @@ working research foothold, not a complete 13.60 jailbreak.
    Add one checked change at a time, then a completion signal that the
    autoloader can observe after wake. Only after that should Y2JB schedule
    later payloads. Linux requires its own much larger hardware and boot path.
+   Initial offline progress is in `PATCH_MAP_1360.md`: the captured syscall
+   table and `sys_getuid` jump stub cross-check each other, and several
+   kstuff 13.60 trap/gadget offsets match the dump's instructions. The
+   `mprotect`/ASLR entries are scoped debugger trap sites, not ready-made
+   global patch bytes. No downstream functional patch or post-wake autoloader
+   completion signal has been deployed.
 
 The immediate goal is milestone 4: derive a 13.60 patch map from the captured
 code, compare it with downstream HEN/kstuff needs, and build a checked
