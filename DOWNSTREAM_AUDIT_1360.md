@@ -262,3 +262,11 @@ empty. A separate read-only process/app-info probe identified the running
 launcher code documents `0x80940010` as an already-running-app condition
 on FW13.60. The next launch test needs a fresh boot, a zero-pair baseline,
 and YouTube closed; no second launch was made on this boot.
+
+A separate read-only app-info probe resolved the active `eboot.bin`
+process to `PPSA01651` (YouTube), app ID 24. A private guarded launcher
+then detected that title and exited before invoking the native launch
+call. Its blocked branch passed on this boot; its clear/launch branch
+has not been exercised. This isolates the `0x80940010` observation
+from package-format acceptance, which must be evaluated on the next
+fresh boot with YouTube closed.

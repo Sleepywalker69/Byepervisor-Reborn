@@ -570,3 +570,7 @@ An app-info probe identified the active big-app process as
 single launch only on a fresh boot with a zero-pair baseline and YouTube
 closed. Use before/after PPR counts and actual title execution as the
 acceptance gate.
+
+The read-only app-info result identified `PPSA01651` as the active
+`eboot.bin`. A guarded launch probe detected it and made no launch call.
+The guard's clear branch and title execution remain untested.
