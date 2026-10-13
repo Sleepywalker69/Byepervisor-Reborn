@@ -574,3 +574,11 @@ acceptance gate.
 The read-only app-info result identified `PPSA01651` as the active
 `eboot.bin`. A guarded launch probe detected it and made no launch call.
 The guard's clear branch and title execution remain untested.
+
+The isolated post-wake marker had a separate acceptance race: it required
+EOF immediately after the title/arm prefix, while resumed Y2JB may append
+status lines before the native coordinator sends the marker. The marker
+now accepts the same exact three-line prefix as the coordinator, with a
+bounded file size. Host parser cases cover appended status, missing and
+mismatched fields; the new marker ELF compiles with SDK v0.44. Its live
+post-wake execution remains unverified.

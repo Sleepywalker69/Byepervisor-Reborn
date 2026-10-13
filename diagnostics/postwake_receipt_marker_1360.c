@@ -2,11 +2,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/sysctl.h>
 #include <sys/time.h>
 #include <ps5/kernel.h>
 
 #include "../include/attempt_receipt.h"
+#include "../include/y2jb_arm_file.h"
 
 #define DATA_CAVE_OFF 0x2D39000ULL
 #define KH_OFF_USER 0x440ULL
@@ -26,22 +28,17 @@ static int read_q(uint64_t address, uint64_t *value)
 static int arm_file_matches(const char *title, uint64_t arm,
                             uint64_t base, uint64_t root)
 {
-    char path[128], line[256], expected[128], heading[64];
+    char path[128];
     if (snprintf(path, sizeof(path),
                  "/user/temp/common_temp/bpr-y2jb-%s.log", title) <= 0)
+        return 0;
+    struct stat st;
+    if (stat(path, &st) || st.st_size <= 0 || st.st_size > 4096)
         return 0;
     FILE *file = fopen(path, "r");
     if (!file)
         return 0;
-    snprintf(heading, sizeof(heading), "Title: %s\n", title);
-    snprintf(expected, sizeof(expected),
-             "arm: %016" PRIx64 " base=%016" PRIx64 " root=%016" PRIx64 "\n",
-             arm, base, root);
-    int ok = fgets(line, sizeof(line), file) &&
-             strcmp(line, "BPR Y2JB V3 receipt test\n") == 0 &&
-             fgets(line, sizeof(line), file) && strcmp(line, heading) == 0 &&
-             fgets(line, sizeof(line), file) && strcmp(line, expected) == 0 &&
-             fgetc(file) == EOF;
+    int ok = y2jb_arm_file_matches(file, title, arm, base, root);
     fclose(file);
     return ok;
 }
