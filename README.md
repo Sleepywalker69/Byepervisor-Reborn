@@ -1,8 +1,10 @@
 # Byepervisor Reborn
 **Live status, 13 October 2026:** The logged 13.60 ELF in `dist/` froze one
 regular PS5 after the loader printed `Hook installed`, before the `Armed`
-notification appeared. Do not relaunch this exact build. Its console log has
-not yet been recovered, and the stopping instruction is unknown.
+notification appeared. Do not relaunch this exact build. The recovered console
+log contains the `Armed` entry, so its file write began and reached storage;
+it does not prove that `fsync` returned or the notification call completed.
+The stopping instruction is unknown.
 
 The `byepervisor_reborn_1360_autorest_unverified.elf` build incorporates
 [EchoStretch's auto-Rest-Mode PR #1](https://github.com/PS5Dev/Byepervisor-Reborn/pull/1):
