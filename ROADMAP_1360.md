@@ -472,3 +472,24 @@ passes and avoid replaying old ring entries; its source patch and build hashes
 are recorded in `downstream/KSTUFF_1360_BUILD.md`. A console test still needs
 a fresh attempt receipt, a bounded PPR operation, reader counters tied to
 that operation, a functional package result, and a post-test stability check.
+
+The first observed opt-in loader did start on a previously verified manual
+Byepervisor wake. Its reader attached, but the subsequent private fPKG
+installer did not yield a native result. A small read-only probe confirmed
+the package file, while an AppInstUtil-linked probe produced no output
+before its first print. A separate unlinked probe reached its first print,
+then stopped at `dlopen("libSceAppInstUtil.sprx", RTLD_NOW)`. Kstuff's
+`dynlib_load_prx` trap count increased; PPR and fPKG counters stayed at
+zero. A private snapshot of app.db had no row for the test title, and no
+title files were found. This makes registration unproved and unlikely at
+the capture time, but does not provide a native install-status result.
+The exact observations and limits are in `DOWNSTREAM_AUDIT_1360.md`.
+
+Next gate: on a fresh boot, establish whether the AppInstUtil load path
+completes in a controlled, separately observable helper before any install
+request. Preserve its durable entry/exit log and process status. Only
+after a completed load and a native status query may one install request
+be attempted, followed by a title-registration readback, PPR counters,
+and a user-observed launch of the test title. Do not resend the earlier
+installer on the current boot while its outcome and old probe processes
+remain ambiguous.
