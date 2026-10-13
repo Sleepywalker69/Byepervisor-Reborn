@@ -180,6 +180,20 @@ XOTEXT and read-only, and the user reported a responsive home screen. This
 is a one-byte reversible write result; it does not establish persistence or
 the AP stage's causal role in guest-text access.
 
+## Read-only post-wake status diagnostic
+
+`stage_status_1360.c` builds a small ELF that reads firmware, `kern.boottime`,
+the Byepervisor AP-stage marker and hook state, and the saved/live IDT gate and
+IST. It emits one `BPR_STATUS_V1` line and exits nonzero unless all checks pass.
+It makes no kernel writes, does not install a hook, and does not start other
+payloads. The tested ELF is `stage_status_1360.elf` (110,968 bytes; SHA-256
+`b0af1c9ea54934ab7a9db7efbd54684a8f40f4659cbf80b67325626729d793b5`).
+One direct send through standalone elfldr returned `ok=1` for console boot
+`1791893784.399222`, including `stage=41505f434f4d504c`, `hook=0`, `gate=1`,
+and `ist=1`. A prior stage marker on the same boot could also satisfy these
+checks, so this is a state diagnostic rather than proof that a particular
+autoload attempt completed. No Y2JB package has been changed or installed.
+
 For the causal test, `pre_ap_state_1360.c` is a read-only fresh-boot preflight.
 It records firmware, console boot time, text base, stage and hook markers,
 kernel pmap root, and the `sys_getuid` PDE. The separate

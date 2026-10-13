@@ -79,8 +79,12 @@ working research foothold, not a complete 13.60 jailbreak.
    table and `sys_getuid` jump stub cross-check each other, and several
    kstuff 13.60 trap/gadget offsets match the dump's instructions. The
    `mprotect`/ASLR entries are scoped debugger trap sites, not ready-made
-   global patch bytes. No downstream functional patch or post-wake autoloader
-   completion signal has been deployed.
+   global patch bytes. A separate read-only status ELF returned the AP-complete
+   marker, zero hook state, matching restored gate/IST, firmware, and boot time
+   on the current boot. This proves the status format can be observed through
+   standalone elfldr; it is not an attempt-scoped completion receipt and it
+   has not been integrated with Y2JB. No downstream functional patch or
+   post-wake autoloader chain has been deployed.
 
 The immediate goal is milestone 4: derive a 13.60 patch map from the captured
 code, compare it with downstream HEN/kstuff needs, and build a checked
