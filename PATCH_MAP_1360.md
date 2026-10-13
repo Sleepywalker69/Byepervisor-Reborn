@@ -84,9 +84,12 @@ static patch at any entry would reproduce kstuff's thread-scoped behavior.
 | `sceSblServiceMailbox_lr_verifyImage` | `+0x287203` | `44 8b a5 d4 fe ff ff 89` |
 | `ppr_pfs_verify_image_no_key_success` | `+0x28755e` | `c4 63 fb f0 b5 b0 fe ff` |
 
-The source's `fpkg.c` selects an explicit firmware-13 profile and uses these
-addresses in a coordinated PPR key and image-verification path. A candidate
-kernel patch needs the whole call and failure flow, not just one listed byte.
+The source's `fpkg.c` contains an explicit firmware-13 profile and these
+addresses in a coordinated PPR key and image-verification path. However,
+`get_ppr_profile()` returns `NULL` before its switch for `FWVER > 0x1160`,
+so the 13.60 profile is dormant in this revision. A candidate kernel patch
+needs the whole call and failure flow, not just one listed byte or removal
+of that source-level guard.
 
 ## IDA trace: `mprotect_fix_start` is a shared-path condition
 
@@ -168,6 +171,37 @@ original pre-edit IDB at
 The saved post-definition IDB hashes
 `3e8761f9387bba77c2f8fd25471cca3e146f02779427e1ea50ddf0f4bd79504c`.
 No patch or live test was made from this trace.
+
+### Normal ASLR assignment and why the redirect matters
+
+A further bounded 13.60 IDA trace resolves the ordinary path's callee at
+`0xffffffffd3f005c0` (76 captured bytes, beginning
+`55 48 89 e5 53 50 89 f1`). It checks two image-context fields at
+`+0x160` and `+0x168`; when their bitwise OR is nonzero, it calls
+`0xffffffffd3e3a920` with lower bound `0x400000`, upper bound
+`0x80000000`, the difference between fields `+0x168` and `+0x160`, and
+the caller's second argument. It stores that return value at
+`[image_context+0x150]+0x30` and returns zero. Otherwise it returns 22
+without assigning this field. The owner at `0xffffffffd3effa98` calls
+this routine after another call to `0xffffffffd4252c20`, while the
+existing alternate block at `0xffffffffd3effa8a` skips both calls and
+assigns `0x400000` directly to the object's `+0x30` field.
+
+The range routine at `0xffffffffd3e3a920` logs an `ASLR` warning for
+unaligned bounds, rounds them to 16 KiB pages, computes remaining span as
+`upper - (lower + rounded image span)`, draws a value from
+`0xffffffffd4252d10`, and returns `lower + (random value << 14)` or
+`lower + (random value << 21)` according to its fourth argument. Thus the
+field is a chosen image load displacement in the observed normal path;
+the redirect selects a fixed lower bound rather than that randomized
+displacement. The helper's exact type name and all its callers remain
+unverified. This is a control-flow explanation, not a tested 13.60 patch.
+
+The specific captured alternate bytes remain
+`48 8b 45 a0 48 c7 40 30 00 00 40 00 eb 24`; the normal block begins
+`48 8b 3b 44 0f b6 7d a8`. Kstuff-lite reaches the alternate block via a
+scoped debugger trap after its app check; globally replacing that branch
+would change normal image loading, so no static replacement is proposed.
 
 ## Gate before a downstream patch
 

@@ -379,6 +379,18 @@ wake, while an independent gate/IST status after wake remains unmeasured.
 The private copies and their hashes are recorded in the Y2JB
 `POSTWAKE_GATE_1360.md`.
 
+The missing independent status read was then run once with the pinned
+111,024-byte V3 reader while Payload Manager port 8084 was closed. It
+returned `ok=1`, firmware `13600007`, boot `1791904675.805577`, the same
+arm/completion ID `6ace4bc8e2029059`, base/root matching the pre-Rest
+record, AP-complete stage, hook zero, and `gate=1 ist=1`. The raw 203-byte
+private output hashes
+`be1e2793f9a5c501fc9934d5d23082efaf1d4abbe28e382cba25a7782d81fba0`.
+This closes the attempt-specific manual-mode AP/hook/restore gate at the
+time of the read. It does not prove any downstream payload launch or a
+functional 13.60 kernel capability. Console responsiveness after the read
+is awaiting the user's observation.
+
 IDA also resolved the kstuff-lite `aslr_fix_end = aslr_fix_start-0xe`
 target: it is an existing alternate block that writes `0x400000` to a
 field at `+0x30`, then rejoins the surrounding flow. The previously
@@ -402,3 +414,35 @@ constructor treats `+0x30` and `+0x38` as the start and span of an address
 range passed to an unwire-related routine. This narrows the field's role
 without proving its type. The next useful offline step is to map the
 constructor and range consumers before choosing any patch behavior.
+
+The next IDA slice traced the ordinary assignment: the 76-byte callee at
+`0xffffffffd3f005c0` calculates an image displacement with
+`0xffffffffd3e3a920`, using bounds `0x400000`–`0x80000000`, a rounded
+image span, and a random value shifted by 14 or 21 bits. It stores the
+result at the new object's `+0x30`. The alternate block instead stores the
+fixed lower bound `0x400000`, bypassing that calculation. This explains
+the ASLR effect at instruction level and narrows the field to an image load
+displacement in this path; it does not make a global branch patch safe.
+Exact addresses, original bytes, and limits are in `PATCH_MAP_1360.md`.
+No console write or payload launch was made for this trace.
+
+### Installed downstream kstuff fPKG binary audit
+
+The exact console file `kstuff-fpkg-1.13-dr-test6.elf` was retrieved
+read-only and matched the earlier 1,818,680-byte SHA-256
+`b1f60c1ec1685904d396da16710dc9d5676bf0880abf74c65459c886010b9443`.
+Offline IDA shows its PPR installer at ELF offset `0x8e40` compares the
+masked firmware against `0x12000000` and fails for firmware 12 and higher.
+At 13.60 it takes the fall-through that prints the missing-support message,
+then the loader reports plaintext PPR disabled. This disqualifies this
+exact build as evidence of a working 13.60 PPR/fPKG stage; other kstuff
+features remain untested. See `DOWNSTREAM_AUDIT_1360.md`. No downstream
+ELF was launched during this audit.
+
+The public kstuff-lite checkout at `48cd2c4` is not an immediately usable
+13.60 PPR replacement. Although `fpkg.c` contains a 13.60 profile and the
+matching offset table, `get_ppr_profile()` returns `NULL` for every firmware
+above 11.60 before the profile switch. The source explicitly leaves those
+newer profiles available for later work but does not arm plaintext PPR.
+Its 13.60 verifyImage/key-cleanup ABI still needs matching-image review and
+live functional proof. This is recorded in `DOWNSTREAM_AUDIT_1360.md`.
