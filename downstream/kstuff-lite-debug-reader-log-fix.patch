@@ -1,0 +1,19 @@
+diff --git a/ps5-kstuff/debug-reader.c b/ps5-kstuff/debug-reader.c
+index 6b8b8d4..00cb7c5 100644
+--- a/ps5-kstuff/debug-reader.c
++++ b/ps5-kstuff/debug-reader.c
+@@ -108,4 +108 @@ static void reopen_log_file(void)
+-    {
+-        fclose(g_log_file);
+-        g_log_file = NULL;
+-    }
++        return;
+@@ -113 +110 @@ static void reopen_log_file(void)
+-    g_log_file = fopen("/data/kstuff_debug.log", "w");
++    g_log_file = fopen("/data/kstuff_debug.log", "a");
+@@ -615,0 +613,2 @@ int main(void)
++    uint64_t word_seq = 0;
++    uint64_t msg_seq = 0;
+@@ -644,2 +642,0 @@ int main(void)
+-        uint64_t word_seq = 0;
+-        uint64_t msg_seq = 0;

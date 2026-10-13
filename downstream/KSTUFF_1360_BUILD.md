@@ -54,3 +54,29 @@ in any live test. A first run needs a fresh manual-mode post-wake receipt,
 an exact build hash, a module-ready observation, a bounded PPR operation,
 and a functional result with failure/cleanup checks. The private ELFs,
 SQLite archive, build logs, and kernel capture are not included here.
+
+## Observation build and reader audit
+
+The same exact-13.60 opt-in was rebuilt with `KSTUFF_OBS=1` so its PPR
+counters can be read after a controlled operation. This private full-loader
+ELF is 1,540,072 bytes, SHA-256
+`458688991579a4e731a6b2282b3b6aa8c83cfc7f90383eb41a189d05c497ce78`.
+Its embedded payload is 463,840 bytes, SHA-256
+`3be419bc606129690bd638a2a9239e2c7ecde50599f1bc5e03375415e5f8fddb`.
+The 4,186-byte private build log hashes
+`c189877ac308414afc86ef93c3c895331d41695bedff219a8970bd88ff623f67`
+and confirms both build flags on the uelf compile line. No live result is
+claimed for this ELF.
+
+The upstream observation reader reopened `/data/kstuff_debug.log` with `w`
+on every one-second pass and reset its word/message sequence cursors inside
+the loop. That could erase prior output and replay old ring entries. The
+separate `kstuff-lite-debug-reader-log-fix.patch` changes the file to append
+mode, keeps its open handle, and moves the cursors outside the loop. The
+651-byte zero-context patch hashes
+`ce84d15c2ce2d473cb3a86e269a470acab9a7438745ea236034b5ef533863ea4`;
+`git apply --reverse --check --unidiff-zero` passed against the edited checkout. The rebuilt
+private reader ELF is 154,768 bytes, SHA-256
+`39e6433a6914089c3e61e8163b75ece8e158e4a9674eb8c6b1ee431135cec7cd`.
+It has not been run on the console. It reports counters and event records;
+those alone cannot prove a package actually launched.

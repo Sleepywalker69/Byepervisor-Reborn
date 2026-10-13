@@ -465,3 +465,10 @@ SHA-256 `fd3a5a355c954990c736a162c4dea0b681e64550798dc7475534d3ea3aee161b`.
 The patch and build provenance are in `downstream/KSTUFF_1360_BUILD.md`.
 Neither ELF has been launched. Static call-site matches and a completed
 build do not establish runtime PPR, fPKG, or the whole kstuff offset table.
+
+An observed exact-13.60 opt-in loader now also builds offline with
+`KSTUFF_OBS=1`. The reader was corrected to preserve its log across polling
+passes and avoid replaying old ring entries; its source patch and build hashes
+are recorded in `downstream/KSTUFF_1360_BUILD.md`. A console test still needs
+a fresh attempt receipt, a bounded PPR operation, reader counters tied to
+that operation, a functional package result, and a post-test stability check.
