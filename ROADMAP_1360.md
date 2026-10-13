@@ -611,3 +611,31 @@ reader. The earlier 675,864-byte kernel payload ELF was mislabeled as a
 loader and has not been sent. These new artifacts remain private and
 untested on PS5; they cannot substitute for the fresh-boot content-read
 and zero-pair gates.
+
+### Post-wake marker attempt and pause (13 October 2026)
+
+A fresh FW13.60 boot passed a read-only gate: the boot identity differed
+from the earlier stalled boot, FTP answered a command, and the first 4,096
+bytes of both installed YouTube images and both saved backups were readable.
+Both PPSA01651 and PPSA01652 were then replaced with the same staged and
+full-readback-verified marker-test UFS2 image (336,789,504 bytes, SHA-256
+`bc50e6b179d03b30fa97cbd45a8d9744a96f0002d78ddeb2d1a40a0603b2ca66`).
+The prior images were preserved as backups. This was the first live run of
+the configured `postwake_receipt_marker_1360.elf` path; the optional Payload
+Manager image was not installed.
+
+The user rebooted, launched one of the identical YouTube icons, and then
+reported a kernel panic after the Rest Mode wake. The console powered off.
+There was no host request during the Rest Mode/wake cycle. No new arm ID,
+AP-complete status, marker output, stage log, or crash dump was recovered,
+and the launched title is unknown. The marker acceptance gate therefore
+**did not pass**. A previous V3 receipt success on another boot does not
+verify this attempt. The added post-wake ELF selection is a credible
+suspect, but the evidence does not locate the fault within the S3 hook,
+AP completion, resumed coordinator, marker send/execution, or later system
+path.
+
+Testing is paused at the user's request. Preserve recovery evidence and
+audit the manual-to-marker delta before another configured ELF run. Do not
+advance to the optional Payload Manager candidate or downstream package
+testing based on this failed marker attempt.
