@@ -235,3 +235,55 @@ Before replacement, PPSA01651's image hash was
 `341a7bf5997b1e36f2928762769c0aaafb448033d9849e18fd8620bc35e729f5`,
 different from the V1 image; PPSA01652 still matched V1. The reason for that
 PPSA01651 difference has not been investigated. V2 has not yet run on PS5.
+
+### V2 live run: automatic manager ready; later safety check failed
+
+On a fresh PPSA01651 boot, the user observed automatic Rest Mode and a
+responsive wake. Before manual Payload Manager intervention, a host HTTP
+request to port 8084 returned 200 with body `0.5.2`. The saved Y2JB arm file
+recorded `6ace4524b8022059`, text base `ffffffff98880000`, and pmap root
+`000000001c6d4000`. The latest stage-log session identified
+`build=13.60-postwake-sigpipe-v2`, pid 89. It recorded AP-complete cleanup,
+`POSTWAKE_GATE` for that arm ID and PPSA01651, and `POSTWAKE_PM_READY` for
+that same ID. This supports an automatic manager launch on this run; the prior
+boot's manual manager is excluded by the fresh boot and distinct arm record.
+
+An independent V3 status ELF then returned the matching ID/base/root,
+AP-complete stage and zero hook state, but `ok=0 gate=0 ist=0`. Its 203-byte
+output SHA-256 is `5233d4aee438f9d20b659bdb127df63314a6dbea19de021ca7bae5563da35d8e`.
+The host HTTP/log check JSON and saved stage/arm files are under the local
+`PPSA0165x-postwake-v2-image` directory. The status failure means the full
+post-wake safety gate did not pass. The native coordinator checks gate/IST
+before sending Payload Manager; it does not recheck them after Payload Manager
+or its own autoload has run. A later change by another payload is one possible
+explanation, but the exact cause is unproved. The user reported the home
+screen responsive. No repeat or further console payload test was started.
+The user later reported that Payload Manager launched all configured downstream
+payloads and proposed that the short Rest Mode interval caused the mismatch.
+Both are observations/hypotheses, not a proven cause. A fresh-boot repeat with
+steady amber for a full minute is being prepared; no existing receipt is
+being reused.
+
+### Second V2 attempt: automatic manager repeated, gate/IST mismatch repeated
+
+A second fresh PPSA01651 boot used new arm ID `6ace45f68e139059`, text base
+`ffffffff8ae40000`, and root `000000000ec94000`. The user confirmed the
+Rest Mode period was again shorter than one minute and the home screen was
+responsive. Port 8084 again answered HTTP 200 `/version` body `0.5.2` before
+any manual manager launch. The new V2 stage-log session recorded AP-complete,
+`POSTWAKE_GATE` and `POSTWAKE_PM_READY` for the new arm ID. The independent
+V3 reader matched the new ID/base/root and showed AP-complete and zero hook,
+but again returned `ok=0 gate=0 ist=0`. Its 203-byte SHA-256 is
+`d72f61b202b91fe663b25be34566c14a21a6334a21167dcce2f71d1e4d67b3a6`.
+Thus V2's automatic manager launch repeated, but the full post-chain safety
+gate did not pass. Both runs had short Rest Mode intervals, so timing remains
+unexcluded.
+
+The manager's read-only `/log` endpoint (saved locally, 1,946 bytes, SHA-256
+`f21023145fad9af3890ed3cc12bcb6a4b30fc5ee388ec917d8bffe1456743ea8`)
+reported autoload socket sends, in order, for kstuff-fpkg, ShadowmountPlus,
+ProsperoMgr, ps5upload, klogsrv, and ps5debug-NG. The user reported that
+these launched. A socket send alone is not proof each payload completed.
+One or more downstream payloads could alter the checked gate/IST after the
+native coordinator's pre-send receipt check; this remains a hypothesis.
+No third attempt or additional payload launch has been started.
