@@ -674,9 +674,17 @@ A matching per-attempt marker file and a second independent receipt would
 isolate marker execution from automatic post-wake orchestration. The private
 control script has seven passing offline success/failure-path tests, including
 rejection of any second title arm and preservation of unknown partial-send
-state; it has not run
-on PS5. No inference about functional kstuff, fPKG, or Linux support follows
+state; it has not run on PS5. No inference about functional kstuff, fPKG, or Linux support follows
 from this recovery check.
+
+The manual and marker branches contain identical Y2JB runtime code and
+identical Byepervisor and status ELF blobs. The runtime input change is the
+marker ELF plus `postwake.txt` selecting it. The common Byepervisor path
+consults that config only after AP-complete, successful hook cleanup,
+completion-ID write and a 15-second wait. The saved failure log does not
+show whether the last wake reached that point. A direct marker send after
+a separately verified manual wake is still needed to distinguish the
+configured coordinator path from marker execution.
 
 Offline work in parallel mapped all 78 entries of the published 13.60
 kstuff-lite kernel offset table to the saved capture or its one structure
