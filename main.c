@@ -443,7 +443,7 @@ int main(void)
           return 1;
         }
         notify_set_file_logging(1);
-        notifyf("Byepervisor Reborn\nAP completion timed out; hook restored");
+        notifyf("Byepervisor Reborn\nAP completion timed out; hook restored; last stage 0x%lx", o);
         return 1;
       }
     }
