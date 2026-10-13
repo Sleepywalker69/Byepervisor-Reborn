@@ -112,6 +112,14 @@ found that this preflight ran before kstuff installed its remote-syscall
 facility. A third private candidate moves the guard after that setup but
 before ShellCore writes; it passes offline table checks and has not run.
 
+That third candidate passed remote allocation and buffer setup on a fresh
+post-HV boot, then stopped at `dynlib_get_info_ex` before ShellCore writes.
+The operator again confirmed a responsive home screen. The source passed
+handle zero directly, while its own module-listing code uses handles from
+`dynlib_get_list`. A fourth private candidate enumerates module handles,
+checks two live ShellCore byte anchors, then checks all 34 sites before
+patching. Its compiled tables pass offline verification; it has not run.
+
 ## Next qualification gates
 
 1. Preserve the present no-extra-payload YouTube mode while the post-wake

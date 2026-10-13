@@ -299,3 +299,11 @@ candidate moves the preimage gate after those setup steps and before
 ShellCore patching. Its compiled 34-row table passes offline checks, but
 the later gate can no longer certify that preceding kernel setup was inert.
 It has not run on the console.
+
+On its first live run, the third candidate reached its remote module-info
+syscall and returned `reason=info_syscall`. Remote mapping, locking and
+buffer setup had passed; no ShellCore patch ran, and the operator reported
+a responsive home screen. A fourth candidate enumerates handles using
+`dynlib_get_list`, selects a segment by two matching preimage anchors,
+and then applies the full 34-site guard before writes. Its compiled table
+passes offline checks; the handle-list route remains untested on PS5.

@@ -762,6 +762,15 @@ setup and before the ShellCore patch call; its 34 compiled rows pass offline
 verification. This ordering permits earlier kernel changes before the gate,
 so a gate failure is not a clean rollback. The third candidate has not run.
 
+The third candidate subsequently ran once after a matching current-boot
+Byepervisor receipt. It reached its target-process module-info syscall but
+returned `reason=info_syscall` before the 34-site guard and patch loop.
+The operator confirmed the home screen remained responsive. Source review
+found that the call supplied handle zero; the repository's module-listing
+path obtains handles first. A fourth private candidate uses that listing,
+requires two independent live byte anchors and all 34 original-byte checks,
+and has passed compiled-table checks offline. It has not run on the console.
+
 The saved kernel-data capture also supports the published 13.60 TSS array
 stride: all 16 records at `0x68` spacing have populated RSP0 and IST4 fields,
 while IST3 and IST7 are zero in that capture. This is one non-atomic boot,
