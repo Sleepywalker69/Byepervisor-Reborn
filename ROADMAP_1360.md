@@ -709,6 +709,11 @@ It does not establish that the configured Y2JB post-wake coordinator survives
 Rest Mode or sends an ELF, and it does not identify the earlier power-off
 cause. No Payload Manager or kstuff test was part of this control.
 
+The manual-mode chain remains the chosen operating path. Automatic
+post-wake ELF loading is lower priority; continue the 13.60 kstuff
+qualification work from its separate offline source/build and live-state
+gates without treating configured ELF delivery as a prerequisite.
+
 Offline work in parallel mapped all 78 entries of the published 13.60
 kstuff-lite kernel offset table to the saved capture or its one structure
 field, and captured the retail on-disk ShellCore ELF read-only. All 34
