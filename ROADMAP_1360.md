@@ -1,6 +1,6 @@
 # From 13.60 AP completion to a usable post-HV chain
 
-Current downstream state is reconciled in [DOWNSTREAM_AUDIT_1360.md](DOWNSTREAM_AUDIT_1360.md#v5v8-offline-reconciliation-and-remaining-functional-gates). Live work is paused after the reported V7 kernel panic. V8 is an offline build only; no fPKG has demonstrably mounted and run as a title.
+Current downstream state is reconciled in [DOWNSTREAM_AUDIT_1360.md](DOWNSTREAM_AUDIT_1360.md#v5v8-offline-reconciliation-and-remaining-functional-gates). Live work later resumed for bounded A53 observation and stopped on a process-read error; V7 was not rerun. V8 is an offline build only, and no fPKG has demonstrably mounted and run as a title.
 
 The 13 October 2026 run on one regular PS5 reached `STAGE_AP_COMPLETE` after
 the fork's 16-VMCB validation and write/readback loop. A separate read found

@@ -1,6 +1,6 @@
 # 13.60 downstream binary audit
 
-Current status: see **V5–V8 offline reconciliation and remaining functional gates** below. Historical sections retain their original evidence ceilings. Live work is paused after the reported V7 kernel panic.
+Current status: see **V5–V8 offline reconciliation and remaining functional gates** below. Historical sections retain their original evidence ceilings. Live work later resumed for bounded A53 observation and stopped on a process-read error; V7 was not rerun.
 
 ## Installed kstuff fPKG ELF, offline evidence
 
