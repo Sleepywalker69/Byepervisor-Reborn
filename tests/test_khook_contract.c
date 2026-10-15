@@ -84,6 +84,80 @@ static void setup(khook_t *hook)
   hook->oneshot = 1;
 }
 
+static void check_call_frame(int prefix_ret)
+{
+  khook_t hook;
+  kh_chain_t chain;
+  uint8_t chain_buf[0x100];
+  const uint64_t target = KBASE + 0x3000;
+  uint64_t handler = SCRATCH + KH_OFF_BIG_CHAIN + 0x58;
+  size_t target_off;
+
+  setup(&hook);
+  kh_chain_init(&chain, chain_buf, sizeof chain_buf);
+  if (prefix_ret)
+    assert(kh_chain_g(&chain, KERNEL_GADGET_RET_TRAMP) == 0);
+  assert(kh_chain_call(&chain, target, 3, 1, 2, 3) == 0);
+  target_off = chain.len - sizeof(uint64_t);
+  assert(kh_install(&hook, &chain) == 0);
+  assert(at(handler + target_off) == target);
+  assert(((handler + target_off + sizeof(uint64_t)) & 0xF) == 8);
+  if (prefix_ret)
+    assert(at(handler + target_off - 8) == 0);
+  else
+    assert(at(handler + target_off - 8) == kgadget(KERNEL_GADGET_RET_TRAMP));
+  assert(kh_restore(&hook) == 0);
+}
+
+static void check_invalid_call_rejected(void)
+{
+  khook_t hook;
+  kh_chain_t chain;
+  uint8_t chain_buf[0x100];
+
+  setup(&hook);
+  kh_chain_init(&chain, chain_buf, sizeof chain_buf);
+  assert(kh_chain_call(&chain, 0, 3, 1, 2, 3) == -1);
+  assert(chain.err == 1);
+  assert(kh_install(&hook, &chain) == -11);
+}
+
+static void check_resume_chain_call_frame(void)
+{
+  khook_t hook;
+  kh_chain_t chain;
+  uint8_t chain_buf[0x800];
+  const uint64_t target = KBASE + 0x2590b0;
+  const uint64_t handler = SCRATCH + KH_OFF_BIG_CHAIN + 0x58;
+  size_t target_off;
+
+  setup(&hook);
+  kh_chain_init(&chain, chain_buf, sizeof chain_buf);
+  assert(kh_chain_store(&chain, SCRATCH + 0x440, 1) == 0);
+  assert(kh_chain_g(&chain, KERNEL_GADGET_POP_RDX) == 0);
+  assert(kh_chain_q(&chain, 0x1234000) == 0);
+  assert(kh_chain_g(&chain, KERNEL_GADGET_POP_RCX) == 0);
+  assert(kh_chain_q(&chain, SCRATCH + 0x448) == 0);
+  assert(kh_chain_g(&chain, KERNEL_GADGET_ST_RCX_RDX) == 0);
+  assert(kh_chain_memcpy(&chain, SCRATCH + 0x1000, SCRATCH + 0x2000, 0xf00) == 0);
+  for (unsigned i = 0; i < 6; i++)
+    assert(kh_chain_store(&chain, SCRATCH + 0x1f00 + 8 * i, i + 1) == 0);
+  assert(chain.len == 0x180);
+  assert(kh_chain_call(&chain, target, 3, SCRATCH + 0x668,
+                       SCRATCH + 0x660, 8) == 0);
+  target_off = chain.len - sizeof(uint64_t);
+  assert(kh_chain_g(&chain, KERNEL_GADGET_POP_RCX) == 0);
+  assert(kh_chain_q(&chain, SCRATCH + 0x670) == 0);
+  assert(kh_chain_g(&chain, KERNEL_GADGET_ST_RCX_RAX) == 0);
+  assert(kh_chain_store(&chain, SCRATCH + 0x678, 2) == 0);
+  assert(kh_install(&hook, &chain) == 0);
+  assert(at(handler + target_off) == target);
+  assert(((handler + target_off + sizeof(uint64_t)) & 0xF) == 8);
+  assert(at(handler + target_off - 8) == kgadget(KERNEL_GADGET_RET_TRAMP));
+  assert(at(handler + target_off + 8) == kgadget(KERNEL_GADGET_POP_RCX));
+  assert(kh_restore(&hook) == 0);
+}
+
 int main(void)
 {
   khook_t hook;
@@ -116,6 +190,11 @@ int main(void)
   assert(at(IDT + 24) == gate_hi);
   assert(at(TSS + KH_TSS_IST(6)) == saved_ist);
 
-  puts("hook copy/rollback contract: 4 host cases passed");
+  check_call_frame(0);
+  check_call_frame(1);
+  check_invalid_call_rejected();
+  check_resume_chain_call_frame();
+
+  puts("hook copy/rollback and call-frame contract: 8 host cases passed");
   return 0;
 }

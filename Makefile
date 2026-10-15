@@ -23,13 +23,14 @@ else
     $(error PS5_PAYLOAD_SDK is undefined)
 endif
 
-ELF := byepervisor_reborn.elf
+ELF ?= byepervisor_reborn.elf
 
 PAYLOAD_DIR := break_hv_payload
 PAYLOAD_HDR := $(PAYLOAD_DIR)/break_hv.h
 
 POSTWAKE_CONFIG ?= 0
-CFLAGS := -Wall -Werror -Wno-unused-function -g -I./include -DPOSTWAKE_CONFIG=$(POSTWAKE_CONFIG) -lSceSystemService
+CALL_PROBE_1360 ?= 0
+CFLAGS := -Wall -Werror -Wno-unused-function -g -I./include -DPOSTWAKE_CONFIG=$(POSTWAKE_CONFIG) -DCALL_PROBE_1360=$(CALL_PROBE_1360) -lSceSystemService
 
 all: $(ELF)
 

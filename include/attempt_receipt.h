@@ -7,6 +7,14 @@
 #define CAVE_ARM_ID_OFF      0x640
 #define CAVE_COMPLETE_ID_OFF 0x648
 
+/* Opt-in 13.60 call probe. Four qwords beyond the receipt, kept as evidence. */
+#define CAVE_CALL_SRC_OFF   0x660
+#define CAVE_CALL_DST_OFF   0x668
+#define CAVE_CALL_RET_OFF   0x670
+#define CAVE_CALL_DONE_OFF  0x678
+#define CALL_SRC_SENTINEL   UINT64_C(0xc0dec0de1360a53a)
+#define CALL_DONE_SENTINEL  UINT64_C(0x43414c4c5f444f4e)
+
 #define ATTEMPT_STAGE_AP_COMPLETE UINT64_C(0x41505f434f4d504c)
 
 static inline int attempt_receipt_valid(uint64_t stage, uint64_t hook,
