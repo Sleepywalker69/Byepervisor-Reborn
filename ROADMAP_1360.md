@@ -871,3 +871,31 @@ The saved 13.60 image now supports exact allocator/protection candidates and a d
 The unused hook call helper now has an offline stack-alignment correction and host contract tests, and the saved 13.60 return/result-store gadget bytes are pinned. A private host-tested 64-bit compare-and-swap helper provides expected-value install and rollback semantics. Neither is a live kernel-call or recorder result. The next controlled entry test should capture one short leaf function's result and independently read back gate/IST restoration. The demonstrated entry is during S3 wake; a post-wake test hook would need its own multicore/exception safety case. Do not place `kmem_malloc` in the wake handler merely because the leaf smoke succeeds. Its calling context, stack depth, returned allocation, page permissions and cleanup still need separate proof before any A53MM slot change.
 
 The first bounded call test is now an **offline-built, unsent** opt-in Byepervisor ELF, distinct from the recorder. It copies one sentinel qword through the 13.60 `memcpy` candidate in the existing S3 hook and captures destination, return pointer and a done marker. The independent read-only `call_probe_status_1360` source verifies these alongside the current-boot V3 attempt receipt and gate/IST restoration. Host hook tests passed eight contract cases; the opt-in ELF SHA-256 is `362eb19e6e1d5f18b24fe42c420ad2f6f3a4e72b7e587b62ea70cca0f35c922f`, and the status ELF SHA-256 is `40303a01e6cedf9d74cbab203a5dc36751699fd914c8f929c50103805171ea14`. Those hashes identify **builds**, not PS5 results. Do not send either to an already completed Relapse+Byepervisor boot; the wake-hook source refuses re-arming there. A fresh Relapse-only boot is needed only when this specific S3 test is ready to run. A successful call marker would still leave allocator context, executable placement and A53MM recorder installation open.
+
+### 15 October read-only slot check and caller-reference triage
+
+A private, read-only diagnostic was **sent once and executed** after a valid
+current-boot V3 receipt. It read the expected original A53MM `d_ioctl`
+pointer, a nonzero kernel-arena pointer and a present guest RW mapping for
+the slot; elfldr accepted a connection after it exited. This establishes
+the live slot preimage and mapping on that boot. It did not invoke an
+ioctl, change the pointer, allocate executable code, or test the recorder.
+The full raw result and boot-specific addresses remain private.
+
+HyperHEN's vendored `ps5-hen-dev` source contains a syscall-`0x11`
+`kexec` caller, but its bootstrapper uses that engine only for firmware
+1.xx–4.51. The 13.60 route selects a separate Byepervisor stage and
+HyperCore. Our saved 13.60 syscall `0x11` entry is marked absent, and
+the exact legacy `jmp [rsi]` gadget had no instruction-aligned match in
+the analyzed saved text. This rules out treating HyperHEN's bundled
+legacy caller as a ready post-wake 13.60 service; alternate designs remain
+unexamined. The current opt-in S3 call probe is still **built, unsent**.
+
+The user-linked [MM PS5 API Mapper](https://github.com/Michele-M-Media/MM-PS5-API-MAPPER)
+offers a read-only process, FD and bus-driver topology reference. A
+bounded live device-list walk could help connect A53-related devices
+and drivers to later client observations, because the saved list points
+into uncaptured heap memory. It does not supply kernel execution,
+atomic pointer redirection, an A53 image, or fPKG support. The immediate
+installer gate remains a safe kernel-call and executable-allocation smoke,
+followed by an independently checked A53MM pointer swap and rollback.
