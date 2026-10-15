@@ -903,3 +903,21 @@ The mapper does not supply kernel execution, atomic pointer redirection,
 an A53 image or fPKG support. The installer gate remains a safe
 kernel-call and executable-allocation smoke, followed by an independently
 checked A53MM pointer swap and rollback.
+
+### 15 October S3 caller and retained-carrier boundary
+
+The saved 13.60 allocator's known `0x102` call flags include `M_WAITOK`.
+On page shortage, the mapped function can wait and retry. The S3 #DB
+call chain uses data-cave scratch as its stack, so a successful leaf
+`memcpy` probe would not qualify that blocking allocator call in the
+same context. The opt-in leaf probe remains **built, unsent**. A normal
+kernel execution context must be verified before an allocation smoke.
+
+A separate receipt-gated read-only diagnostic was **sent once and
+executed** on the completed post-HV boot. The guest direct-map path for
+the staged AP carrier had NX clear, but its first byte differed from the
+pinned 508-byte Byepervisor AP build. The resident code identity and
+post-wake callability remain unverified; no allocation or instruction
+fetch was tested. A fresh S3 call attempt needs a full console restart
+to Relapse-only with elfldr before running Byepervisor once. Clearing
+the completed receipt fields on the old boot is not a fresh attempt.

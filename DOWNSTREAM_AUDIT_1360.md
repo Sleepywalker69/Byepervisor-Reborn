@@ -552,3 +552,15 @@ Thirty-two names were unreadable or invalid, and no bus method or A53MM
 ioctl was invoked. This live x86 topology observation does not prove an
 A53 helper entry or close the missing kernel caller, executable allocation,
 atomic recorder installation, A53 image/profile or fPKG execution gates.
+
+The saved 13.60 allocator's observed `0x102` flags permit waiting; its
+page-shortage branch can call `vmwait` before retrying. That call is not
+qualified for the S3 #DB ROP stack by the unsent leaf `memcpy` probe.
+A separate read-only, receipt-gated carrier check was **sent once and
+executed**. It found the expected physical page mapped with NX clear,
+but the byte comparison against the pinned AP code failed at its first
+byte. The current bytes were not captured, so the cause is unknown.
+No retained callable service, executable allocation, A53MM dispatch,
+atomic pointer swap or recorder installation was demonstrated. The
+next S3 attempt requires a full restart to a fresh Relapse-only boot;
+manually clearing the completed receipt would bypass its safety guard.
