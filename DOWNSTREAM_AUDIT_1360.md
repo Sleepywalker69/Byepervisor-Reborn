@@ -544,6 +544,11 @@ HyperHEN's bundled syscall-`0x11` `kexec` routine belongs to its legacy
 1.xx–4.51 engine, not its 13.60 launch path. The saved 13.60 syscall
 entry is marked absent, and the old exact indirect-jump gadget had no
 instruction-aligned match in the analyzed text. It is a source reference,
-not a post-wake 13.60 caller. MM PS5 API Mapper may inform a bounded
-read-only bus/device and FD topology observation; it does not close the
-missing caller, A53 image/profile or fPKG execution gates.
+not a post-wake 13.60 caller. MM PS5 API Mapper informed a separate,
+bounded read-only diagnostic that was **sent once and executed** after
+a valid current-boot receipt. The bus list ended consistently at 123
+nodes; its filtered matches included `sbl0` (`Oberon PSP`) and `mp40`.
+Thirty-two names were unreadable or invalid, and no bus method or A53MM
+ioctl was invoked. This live x86 topology observation does not prove an
+A53 helper entry or close the missing kernel caller, executable allocation,
+atomic recorder installation, A53 image/profile or fPKG execution gates.

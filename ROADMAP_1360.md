@@ -893,9 +893,13 @@ unexamined. The current opt-in S3 call probe is still **built, unsent**.
 
 The user-linked [MM PS5 API Mapper](https://github.com/Michele-M-Media/MM-PS5-API-MAPPER)
 offers a read-only process, FD and bus-driver topology reference. A
-bounded live device-list walk could help connect A53-related devices
-and drivers to later client observations, because the saved list points
-into uncaptured heap memory. It does not supply kernel execution,
-atomic pointer redirection, an A53 image, or fPKG support. The immediate
-installer gate remains a safe kernel-call and executable-allocation smoke,
-followed by an independently checked A53MM pointer swap and rollback.
+separate bounded 13.60 diagnostic was **sent once and executed** after a
+valid current-boot receipt. Its bus walk ended consistently after 123
+nodes, with `sbl0` (`Oberon PSP`) and `mp40` among five filtered matches.
+Thirty-two device names were unreadable or failed validation, so the
+names do not provide complete semantic coverage. This identifies live
+x86 device topology; no bus method, A53MM ioctl or A53 helper was invoked.
+The mapper does not supply kernel execution, atomic pointer redirection,
+an A53 image or fPKG support. The installer gate remains a safe
+kernel-call and executable-allocation smoke, followed by an independently
+checked A53MM pointer swap and rollback.
